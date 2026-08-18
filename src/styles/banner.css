@@ -1,0 +1,76 @@
+/* src/styles/banner.css - Cinefy Taste Intelligence Ribbon Banner */
+
+.cf-hero-banner {
+  background: linear-gradient(180deg, #101520 0%, #0a0d14 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 18px 0;
+}
+
+.cf-banner-inner {
+  max-width: 1680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .cf-banner-inner {
+    padding: 0 16px;
+  }
+}
+
+.cf-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cf-welcome-headline {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cf-user-name {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.cf-banner-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cf-stat-badge-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #141a24;
+  border: 1px solid var(--border-subtle);
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.cf-stat-badge-item b {
+  color: #ffffff;
+}
+
+.cf-persona-badge {
+  border-color: rgba(251, 54, 64, 0.4);
+  background: rgba(251, 54, 64, 0.1);
+}
+
+.cf-persona-text {
+  color: var(--accent-ruby);
+  font-weight: 700;
+}

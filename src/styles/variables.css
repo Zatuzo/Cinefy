@@ -1,0 +1,85 @@
+/* src/styles/variables.css - Cinefy Design System Tokens & Base Reset */
+
+:root {
+  /* Sleek Obsidian Dark Gray Canvas & Surfaces */
+  --bg-canvas: #0a0d14;
+  --bg-surface: #101520;
+  --bg-card: #141a24;
+  --bg-card-hover: #1b2331;
+  --bg-card-active: #222c3e;
+  
+  /* Signature Imperial Red Accents */
+  --accent-ruby: #FB3640;
+  --accent-ruby-hover: #e02630;
+  --accent-ruby-glow: rgba(251, 54, 64, 0.32);
+  --accent-ruby-subtle: rgba(251, 54, 64, 0.14);
+  --accent-ruby-border: rgba(251, 54, 64, 0.4);
+  
+  --accent-coral: #ff525b;
+  --accent-gold: #f59e0b;
+  --accent-gold-subtle: rgba(245, 158, 11, 0.14);
+  --accent-cyan: #06b6d4;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --border-subtle: #1e2838;
+  --border-hover: #2e3c50;
+  --border-active: #3e506a;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  font-size: 15px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Minimalist Dark Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #222d3d;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334358;
+}
+
+/* App Shell */
+.cf-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-canvas);
+}

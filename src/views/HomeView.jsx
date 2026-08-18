@@ -16,7 +16,7 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
     });
   }, [diary, watchlist]);
 
-  // Recent logs - Sorted STRICTLY descending by date (latest first)
+  // Recent logs - Preview of top 8 films (sorted descending by date)
   const recentFilms = useMemo(() => {
     return [...diary]
       .sort((a, b) => {
@@ -24,17 +24,17 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
         const dateB = new Date(b.date || b.Watched_Date || b.Date || 0);
         return dateB - dateA;
       })
-      .slice(0, 16);
+      .slice(0, 8);
   }, [diary]);
 
-  // 5-Star Masterpieces - Strictly 5.0 stars only
+  // 5-Star Masterpieces - Preview of top 8 strictly 5.0 rating films
   const topRatedFilms = useMemo(() => {
-    return diary.filter(f => Number(f.rating || f.Rating) === 5).slice(0, 16);
+    return diary.filter(f => Number(f.rating || f.Rating) === 5).slice(0, 8);
   }, [diary]);
 
-  // Watchlist Queue (top unwatched)
+  // Watchlist Queue - Preview of top 8 unwatched gems
   const watchlistQueue = useMemo(() => {
-    return (watchlist || []).slice(0, 16);
+    return (watchlist || []).slice(0, 8);
   }, [watchlist]);
 
   return (
@@ -46,6 +46,13 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
             <h2 className="section-title">Recently Logged</h2>
             <p className="section-subtitle">Latest films added to your viewing diary.</p>
           </div>
+          <button
+            className="btn-secondary"
+            onClick={() => onNavigate('diary')}
+          >
+            <span>Full Diary</span>
+            <ChevronRight size={14} />
+          </button>
         </div>
 
         <div className="media-rail">
@@ -112,6 +119,13 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
               <h2 className="section-title">From Your Watchlist</h2>
               <p className="section-subtitle">Unwatched gems queued for your next screening.</p>
             </div>
+            <button
+              className="btn-secondary"
+              onClick={() => onNavigate('semantic')}
+            >
+              <span>Full Watchlist</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
 
           <div className="media-rail">
@@ -134,6 +148,13 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
               <h2 className="section-title">5-Star Masterpieces</h2>
               <p className="section-subtitle">Films awarded a perfect ★ 5.0 rating in your diary.</p>
             </div>
+            <button
+              className="btn-secondary"
+              onClick={() => onNavigate('diary')}
+            >
+              <span>All Masterpieces</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
 
           <div className="media-rail">

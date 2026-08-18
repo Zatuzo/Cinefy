@@ -1,0 +1,182 @@
+/* src/styles/views.css - View-Specific Styles (Diary, Rewind, Mixes, Vibe Search, Analytics) */
+
+/* =========================================================
+   1. DIARY VIEW
+   ========================================================= */
+.diary-view-container {
+  width: 100%;
+}
+
+.diary-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 16px;
+}
+
+.diary-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.diary-date-section {
+  background: #141a24;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  transition: border-color var(--transition-fast);
+}
+
+.diary-date-section:hover {
+  border-color: var(--border-hover);
+}
+
+.diary-date-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 12px;
+}
+
+.diary-calendar-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: #18202e;
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--accent-ruby);
+  flex-shrink: 0;
+}
+
+.cal-month {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-ruby);
+  line-height: 1;
+}
+
+.cal-day {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  margin-top: 3px;
+}
+
+.diary-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diary-date-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.diary-date-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.diary-day-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.diary-posters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 600px) {
+  .diary-posters-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* =========================================================
+   2. HERO & KPI STAGES (REWIND & ANALYTICS)
+   ========================================================= */
+.hero-stage {
+  border-radius: var(--radius-md);
+  padding: 28px;
+  margin-bottom: 32px;
+  background: #141a24;
+  border: 1px solid var(--border-subtle);
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-ruby);
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.hero-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .hero-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kpi-tile {
+  background: #0e121a;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}

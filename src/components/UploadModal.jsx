@@ -1,44 +1,22 @@
 // src/components/UploadModal.jsx
 import React, { useState } from 'react';
-import { X, Upload, CheckCircle2, Database, RefreshCw } from 'lucide-react';
+import { X, Upload, CheckCircle2, FileSpreadsheet, Film, Bookmark, Info } from 'lucide-react';
 import { processLetterboxdFiles } from '../services/csvParser';
-import { fetchSupabaseData } from '../supabase';
 
-export default function UploadModal({ isOpen, onClose, onDataLoaded, onResetDemo }) {
+export default function UploadModal({ isOpen, onClose, onDataLoaded }) {
   const [dragActive, setDragActive] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
+  const [importedSummary, setImportedSummary] = useState(null);
 
   if (!isOpen) return null;
-
-  const handleSupabaseSync = async () => {
-    setIsProcessing(true);
-    setStatusMsg('Connecting to Supabase...');
-    try {
-      const res = await fetchSupabaseData("zatuzo");
-      if (res && (res.diary.length > 0 || res.watchlist.length > 0)) {
-        onDataLoaded(res.diary, res.watchlist);
-        setStatusMsg(`Synced ${res.diary.length} viewing logs and ${res.watchlist.length} watchlist movies from Supabase!`);
-        setTimeout(() => {
-          setIsProcessing(false);
-          onClose();
-        }, 800);
-      } else {
-        setStatusMsg('No records returned from Supabase.');
-        setIsProcessing(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setStatusMsg('Failed to sync from Supabase.');
-      setIsProcessing(false);
-    }
-  };
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
     setIsProcessing(true);
-    setStatusMsg('Importing Letterboxd data...');
+    setStatusMsg('Parsing Letterboxd export CSVs...');
+    setImportedSummary(null);
 
     try {
       const { diary, watchlist } = await processLetterboxdFiles(files, (pct) => {
@@ -47,18 +25,18 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded, onResetDemo
 
       if (diary.length > 0 || watchlist.length > 0) {
         onDataLoaded(diary, watchlist);
-        setStatusMsg(`Imported ${diary.length} diary films & ${watchlist.length} watchlist items.`);
+        setImportedSummary({ diaryCount: diary.length, watchlistCount: watchlist.length });
+        setStatusMsg(`Successfully imported ${diary.length} diary screenings and ${watchlist.length} watchlist films!`);
         setTimeout(() => {
           setIsProcessing(false);
-          onClose();
-        }, 800);
+        }, 600);
       } else {
-        setStatusMsg('No valid rows found in selected CSV files.');
+        setStatusMsg('No valid movie rows found in the selected CSV files.');
         setIsProcessing(false);
       }
     } catch (err) {
       console.error(err);
-      setStatusMsg('Error reading files. Please upload Letterboxd export CSVs.');
+      setStatusMsg('Error reading files. Please select valid Letterboxd export CSVs.');
       setIsProcessing(false);
     }
   };
@@ -73,58 +51,47 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded, onResetDemo
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700' }}>Sync Data Source</h2>
-          <button
-            onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '16px', lineHeight: 1.4 }}>
-          Sync your 650+ films directly from Supabase or upload new Letterboxd export files.
-        </p>
-
-        {/* 1. Supabase Fast Sync Button */}
-        <div style={{ marginBottom: '16px' }}>
-          <button
-            type="button"
-            className="btn-primary"
-            style={{
-              width: '100%',
-              padding: '12px',
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ width: '540px' }}>
+        {/* Modal Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--accent-ruby-subtle)',
+              color: 'var(--accent-ruby)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              fontSize: '13px',
-              fontWeight: '600'
-            }}
-            onClick={handleSupabaseSync}
-            disabled={isProcessing}
+              justifyContent: 'center'
+            }}>
+              <FileSpreadsheet size={16} />
+            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff' }}>Import Letterboxd Data</h2>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
           >
-            <Database size={16} />
-            <span>⚡ Sync From Supabase Database</span>
+            <X size={18} />
           </button>
         </div>
 
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', margin: '10px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          — or upload local export CSVs —
-        </div>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', lineHeight: 1.5 }}>
+          Drop your exported Letterboxd CSV files here to instantly load your diary, ratings, and watchlist.
+        </p>
 
-        {/* 2. Dropzone */}
+        {/* Drag & Drop Area */}
         <div
           style={{
-            border: `1px dashed ${dragActive ? 'var(--accent-red)' : 'var(--border-subtle)'}`,
-            borderRadius: 'var(--radius-sm)',
-            padding: '24px 16px',
+            border: `2px dashed ${dragActive ? 'var(--accent-ruby)' : 'var(--border-hover)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '36px 20px',
             textAlign: 'center',
-            background: dragActive ? 'var(--accent-red-subtle)' : 'var(--bg-card)',
-            transition: 'all 0.15s ease',
-            cursor: 'pointer'
+            background: dragActive ? 'rgba(251, 54, 64, 0.08)' : '#0e141e',
+            transition: 'all var(--transition-fast)',
+            cursor: 'pointer',
+            marginBottom: '18px'
           }}
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
@@ -139,50 +106,81 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded, onResetDemo
             style={{ display: 'none' }}
             onChange={(e) => handleFiles(Array.from(e.target.files))}
           />
+
           <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--bg-surface)',
-            color: 'var(--accent-red)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: 'rgba(251, 54, 64, 0.12)',
+            color: 'var(--accent-ruby)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '8px'
+            marginBottom: '12px'
           }}>
-            <Upload size={16} />
+            <Upload size={22} />
           </div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px' }}>
-            Click or drag Letterboxd CSVs here
+
+          <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '4px' }}>
+            Click or drag & drop Letterboxd CSVs
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-            Supports diary.csv, ratings.csv, watchlist.csv
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+            Select <b>diary.csv</b>, <b>ratings.csv</b>, or <b>watchlist.csv</b>
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Progress Bar */}
         {isProcessing && (
-          <div style={{ marginTop: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
               <span>{statusMsg}</span>
               {progress > 0 && <span>{progress}%</span>}
             </div>
-            <div style={{ width: '100%', height: '4px', background: 'var(--bg-card)', borderRadius: '2px', overflow: 'hidden' }}>
-              <div style={{ width: progress > 0 ? `${progress}%` : '100%', height: '100%', background: 'var(--accent-red)', transition: 'width 0.15s ease' }} />
+            <div style={{ width: '100%', height: '5px', background: '#1e2838', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ width: progress > 0 ? `${progress}%` : '100%', height: '100%', background: 'var(--accent-ruby)', transition: 'width 0.15s ease' }} />
             </div>
           </div>
         )}
 
-        {statusMsg && !isProcessing && (
-          <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <CheckCircle2 size={14} />
-            <span>{statusMsg}</span>
+        {/* Success / Status Banner */}
+        {importedSummary && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '12px 14px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <CheckCircle2 size={18} style={{ color: '#10b981', flexShrink: 0 }} />
+            <div style={{ fontSize: '13px', color: '#ffffff' }}>
+              Imported <b>{importedSummary.diaryCount}</b> logged films and <b>{importedSummary.watchlistCount}</b> watchlist entries!
+            </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+        {/* Helpful instructions note */}
+        <div style={{
+          background: '#101622',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '12px 14px',
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'flex-start'
+        }}>
+          <Info size={15} style={{ color: 'var(--accent-ruby)', flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: '700' }}>Where to get your Letterboxd data:</span> Go to <b>letterboxd.com &gt; Settings &gt; Data &gt; Export Your Data</b>. Unzip the download file and drop the CSVs here.
+          </div>
+        </div>
+
+        {/* Modal Actions */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
           <button type="button" className="btn-secondary" onClick={onClose}>
-            Close
+            Done
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 // src/components/CinefyNavbar.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Upload, Star, Sparkles, ChevronDown, User, Disc3, Compass, BarChart2, Calendar, Film } from 'lucide-react';
+import { Search, Plus, Star, Sparkles, ChevronDown, Disc3, Compass, BarChart2, Calendar, Film, Settings } from 'lucide-react';
 import { searchTMDbMovies } from '../services/tmdb';
 
 export default function CinefyNavbar({ 
@@ -53,45 +53,46 @@ export default function CinefyNavbar({
   }, []);
 
   const navLinks = [
-    { id: 'home', label: 'HOME', icon: Film },
-    { id: 'diary', label: 'DIARY', icon: Calendar },
-    { id: 'rewind', label: 'REWIND', icon: Sparkles },
-    { id: 'mixes', label: 'MIXES', icon: Disc3 },
-    { id: 'semantic', label: 'VIBE SEARCH', icon: Compass },
-    { id: 'analytics', label: 'ANALYTICS', icon: BarChart2 }
+    { id: 'home', label: 'Home Dashboard', icon: Film },
+    { id: 'diary', label: 'Film Diary', icon: Calendar },
+    { id: 'rewind', label: 'Monthly Rewind', icon: Sparkles },
+    { id: 'mixes', label: 'Cinema Mixes', icon: Disc3 },
+    { id: 'semantic', label: 'Vibe Search', icon: Compass },
+    { id: 'analytics', label: 'Taste Analytics', icon: BarChart2 }
   ];
 
   return (
     <header className="cf-header">
       <div className="cf-nav-container">
-        {/* 1. Left: Custom Cinefy Anamorphic Brand Logo */}
-        <div className="cf-brand-group" onClick={() => setTab('home')}>
-          <div className="cf-logo-mark">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#cf-grad-1)" />
-              <path d="M2 17L12 22L22 17" stroke="url(#cf-grad-2)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M2 12L12 17L22 12" stroke="url(#cf-grad-1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              <defs>
-                <linearGradient id="cf-grad-1" x1="2" y1="2" x2="22" y2="17" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#FB3640" />
-                  <stop offset="1" stopColor="#ff525b" />
-                </linearGradient>
-                <linearGradient id="cf-grad-2" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#FB3640" />
-                  <stop offset="1" stopColor="#b91c1c" />
-                </linearGradient>
-              </defs>
-            </svg>
+        {/* Left Cluster: Brand Logo + Profile + Pinterest Navigation pinned together on the LEFT */}
+        <div className="cf-nav-left-cluster">
+          {/* 1. Custom Cinefy Anamorphic Brand Logo */}
+          <div className="cf-brand-group" onClick={() => setTab('home')}>
+            <div className="cf-logo-mark">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#cf-grad-1)" />
+                <path d="M2 17L12 22L22 17" stroke="url(#cf-grad-2)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="url(#cf-grad-1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <defs>
+                  <linearGradient id="cf-grad-1" x1="2" y1="2" x2="22" y2="17" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FB3640" />
+                    <stop offset="1" stopColor="#ff525b" />
+                  </linearGradient>
+                  <linearGradient id="cf-grad-2" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FB3640" />
+                    <stop offset="1" stopColor="#b91c1c" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="cf-brand-text-wrap">
+              <span className="cf-logo-text">CINEFY</span>
+            </div>
           </div>
-          <div className="cf-brand-text-wrap">
-            <span className="cf-logo-text">CINEFY</span>
-            <span className="cf-badge-pro">PRO</span>
-          </div>
-        </div>
 
-        {/* 2. Middle: Navigation Links */}
-        <nav className="cf-nav-links">
-          {/* User Profile Pill */}
+          <div className="cf-nav-divider-v" />
+
+          {/* 2. User Profile Pill */}
           <div className="cf-profile-item" ref={profileDropdownRef}>
             <button 
               className={`cf-profile-btn ${isProfileOpen ? 'active' : ''}`}
@@ -101,13 +102,13 @@ export default function CinefyNavbar({
                 <span>Z</span>
               </div>
               <span className="cf-username">Zatuzo</span>
-              <ChevronDown size={11} className="cf-chevron" />
+              <ChevronDown size={12} className="cf-chevron" />
             </button>
 
             {isProfileOpen && (
               <div className="cf-profile-menu">
                 <div className="cf-profile-header">
-                  <div style={{ fontWeight: '800', fontSize: '13px', color: '#fff' }}>Zatuzo</div>
+                  <div style={{ fontWeight: '800', fontSize: '14px', color: '#fff' }}>Zatuzo</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>CineMetrics Curator</div>
                 </div>
                 <div className="cf-menu-divider" />
@@ -121,47 +122,58 @@ export default function CinefyNavbar({
                 </div>
                 <div className="cf-menu-divider" />
                 <button className="cf-menu-btn" onClick={() => { setTab('diary'); setIsProfileOpen(false); }}>
-                  <Calendar size={13} style={{ color: 'var(--accent-ruby)' }} />
+                  <Calendar size={14} style={{ color: 'var(--accent-ruby)' }} />
                   <span>Chronological Diary</span>
                 </button>
                 <button className="cf-menu-btn" onClick={() => { setTab('rewind'); setIsProfileOpen(false); }}>
-                  <Sparkles size={13} style={{ color: 'var(--accent-ruby)' }} />
+                  <Sparkles size={14} style={{ color: 'var(--accent-ruby)' }} />
                   <span>Monthly Rewinds</span>
                 </button>
                 <button className="cf-menu-btn" onClick={() => { setTab('analytics'); setIsProfileOpen(false); }}>
-                  <BarChart2 size={13} style={{ color: '#f59e0b' }} />
+                  <BarChart2 size={14} style={{ color: '#f59e0b' }} />
                   <span>Viewing Analytics</span>
                 </button>
+                <div className="cf-menu-divider" />
                 <button className="cf-menu-btn" onClick={() => { onOpenUpload(); setIsProfileOpen(false); }}>
-                  <Upload size={13} style={{ color: '#38bdf8' }} />
-                  <span>Sync Supabase Data</span>
+                  <Settings size={14} style={{ color: 'var(--accent-ruby)' }} />
+                  <span>Settings & Import Data</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* Primary View Links */}
-          {navLinks.map(link => {
-            const isActive = currentTab === link.id;
-            const Icon = link.icon;
-            return (
-              <button
-                key={link.id}
-                className={`cf-nav-btn ${isActive ? 'active' : ''}`}
-                onClick={() => setTab(link.id)}
-              >
-                <Icon size={13} className="cf-nav-icon" />
-                <span>{link.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+          <div className="cf-nav-divider-v" />
 
-        {/* 3. Right: Live Search & Actions */}
+          {/* 3. Big 24px Icon Navigation with Floating Tooltips */}
+          <nav className="cf-pin-icons-wrap">
+            {navLinks.map(link => {
+              const isActive = currentTab === link.id;
+              const Icon = link.icon;
+
+              return (
+                <button
+                  key={link.id}
+                  className={`cf-pin-btn ${isActive ? 'active' : ''}`}
+                  onClick={() => setTab(link.id)}
+                  aria-label={link.label}
+                >
+                  <Icon size={24} strokeWidth={isActive ? 2.4 : 1.8} className="cf-pin-icon" />
+
+                  {/* Floating Hover Tooltip */}
+                  <span className="cf-pin-tooltip">
+                    {link.label}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Right Cluster: Search & +LOG FILM */}
         <div className="cf-right-actions">
           {/* Live Search Bar with TMDb Autocomplete */}
           <div className="cf-search-wrapper" ref={searchDropdownRef}>
-            <Search size={13} className="cf-search-icon" />
+            <Search size={14} className="cf-search-icon" />
             <input
               type="text"
               placeholder="Search films..."
@@ -223,15 +235,9 @@ export default function CinefyNavbar({
             )}
           </div>
 
-          {/* Sync Button */}
-          <button className="cf-sync-btn" onClick={onOpenUpload} title="Sync Supabase or Import Letterboxd CSVs">
-            <Upload size={12} />
-            <span>Sync</span>
-          </button>
-
           {/* + LOG FILM Signature Crimson Button */}
           <button className="cf-log-btn" onClick={() => onOpenQuickLog(null)}>
-            <Plus size={13} strokeWidth={3} />
+            <Plus size={15} strokeWidth={3} />
             <span>LOG FILM</span>
           </button>
         </div>

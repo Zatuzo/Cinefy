@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import CinefyNavbar from './components/CinefyNavbar';
 import CinefyHeroBanner from './components/CinefyHeroBanner';
 import QuickLogModal from './components/QuickLogModal';
@@ -13,63 +13,120 @@ import SemanticView from './views/SemanticView';
 import AnalyticsView from './views/AnalyticsView';
 
 import userLibrary from './data/userLibrary.json';
-import { fetchSupabaseData } from './supabase';
+
+// Chronological rewatch annotator
+function annotateRewatches(diaryList = []) {
+  if (!Array.isArray(diaryList)) return [];
+
+  // Sort chronologically ascending to calculate watch index (1st watch, 2nd watch, etc.)
+  const sorted = [...diaryList].sort((a, b) => {
+    const dA = new Date(a.date || a.Watched_Date || a.Date || 0);
+    const dB = new Date(b.date || b.Watched_Date || b.Date || 0);
+    return dA - dB;
+  });
+
+  const countMap = {};
+  const annotatedMap = new Map();
+
+  sorted.forEach(film => {
+    const key = (film.name || film.Name || film.title || '').trim().toLowerCase();
+    const count = (countMap[key] || 0) + 1;
+    countMap[key] = count;
+    
+    // Fix Sugar if matched to wrong movie previously
+    let poster = film.poster || film.Poster;
+    let director = film.director || film.Director;
+    let overview = film.overview || film.Overview;
+    let year = film.year || film.Year;
+
+    if (key === 'sugar') {
+      poster = 'https://image.tmdb.org/t/p/w500/l0EQ5dNv2vIMGlJOumqyiYyVtay.jpg';
+      director = 'Choi Sin-choon';
+      overview = 'A working mother and software engineer battles regulations and medical barriers to build a continuous glucose monitor for her son diagnosed with Type 1 diabetes.';
+      year = 2026;
+    }
+
+    const isRewatch = count > 1 || film.rewatch === true || film.Rewatch === 'Yes';
+    const filmKey = film.id || `${film.name}-${film.date}`;
+
+    annotatedMap.set(filmKey, {
+      ...film,
+      poster,
+      director,
+      overview,
+      year,
+      watchNumber: count,
+      isRewatch
+    });
+  });
+
+  return diaryList.map(film => {
+    const filmKey = film.id || `${film.name}-${film.date}`;
+    return annotatedMap.get(filmKey) || film;
+  });
+}
 
 export default function App() {
-  // Initialize immediately with your full Supabase library
-  const [diary, setDiary] = useState(userLibrary.diary || []);
-  const [watchlist, setWatchlist] = useState(userLibrary.watchlist || []);
+  // Initialize from localStorage or bundled userLibrary
+  const [diary, setDiary] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cinefy_diary');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return annotateRewatches(parsed);
+      }
+    } catch (e) {
+      console.warn("Could not read diary from localStorage:", e);
+    }
+    return annotateRewatches(userLibrary.diary || []);
+  });
+
+  const [watchlist, setWatchlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cinefy_watchlist');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn("Could not read watchlist from localStorage:", e);
+    }
+    return userLibrary.watchlist || [];
+  });
+
   const [currentTab, setCurrentTab] = useState('home');
   const [activeMix, setActiveMix] = useState(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [dbSource, setDbSource] = useState('supabase');
 
   // Modals
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [quickLogFilm, setQuickLogFilm] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  // Real-time Supabase background sync
-  const loadFromSupabase = useCallback(async () => {
-    setIsSyncing(true);
-    try {
-      console.log("⚡ Syncing latest updates from Supabase...");
-      const res = await fetchSupabaseData("zatuzo");
-      if (res && res.diary && res.diary.length > 0) {
-        setDiary(res.diary);
-        setDbSource('supabase');
-      }
-      if (res && res.watchlist && res.watchlist.length > 0) {
-        setWatchlist(res.watchlist);
-      }
-    } catch (e) {
-      console.warn("Supabase background sync notice:", e);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, []);
-
-  // Sync on startup
+  // Save to localStorage whenever diary or watchlist updates
   useEffect(() => {
-    loadFromSupabase();
-  }, [loadFromSupabase]);
+    try {
+      localStorage.setItem('cinefy_diary', JSON.stringify(diary));
+    } catch (e) {
+      console.warn("Failed to persist diary to localStorage:", e);
+    }
+  }, [diary]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cinefy_watchlist', JSON.stringify(watchlist));
+    } catch (e) {
+      console.warn("Failed to persist watchlist to localStorage:", e);
+    }
+  }, [watchlist]);
 
   const handleSaveFilm = (newFilm) => {
-    setDiary(prev => [newFilm, ...prev]);
+    setDiary(prev => annotateRewatches([newFilm, ...prev]));
   };
 
   const handleDataLoaded = (newDiary, newWatchlist) => {
     if (newDiary && newDiary.length > 0) {
-      setDiary(newDiary);
-      setDbSource('upload');
+      setDiary(annotateRewatches(newDiary));
     }
     if (newWatchlist && newWatchlist.length > 0) {
       setWatchlist(newWatchlist);
     }
-  };
-
-  const handleResetDemo = () => {
-    loadFromSupabase();
   };
 
   const handleOpenQuickLog = (film = null) => {
@@ -84,7 +141,7 @@ export default function App() {
 
   return (
     <div className="cf-app-shell">
-      {/* 1. Bespoke Cinefy Top Navigation Bar */}
+      {/* 1. Cinefy Top Navigation Bar */}
       <CinefyNavbar
         currentTab={currentTab}
         setTab={setCurrentTab}
@@ -164,7 +221,6 @@ export default function App() {
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onDataLoaded={handleDataLoaded}
-        onResetDemo={handleResetDemo}
       />
     </div>
   );
