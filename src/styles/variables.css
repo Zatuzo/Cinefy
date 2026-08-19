@@ -1,40 +1,55 @@
-/* src/styles/variables.css - Cinefy Design System Tokens & Base Reset */
+/* src/styles/variables.css - Cinefy Design System Tokens & Base Reset (WCAG 2.1 AA Compliant) */
 
 :root {
-  /* Sleek Obsidian Dark Gray Canvas & Surfaces */
-  --bg-canvas: #0a0d14;
-  --bg-surface: #101520;
-  --bg-card: #141a24;
-  --bg-card-hover: #1b2331;
-  --bg-card-active: #222c3e;
-  
-  /* Signature Imperial Red Accents */
+  /* Surfaces & Canvas (Cinematic Obsidian & Deep Slate) */
+  --bg-canvas: #090c12;
+  --bg-surface: #0e131d;
+  --bg-card: #131926;
+  --bg-card-hover: #192132;
+  --bg-card-active: #202b3f;
+  --bg-overlay: rgba(9, 12, 18, 0.88);
+
+  /* Primary Brand Accents (Signature Imperial Red) */
   --accent-ruby: #FB3640;
   --accent-ruby-hover: #e02630;
-  --accent-ruby-glow: rgba(251, 54, 64, 0.32);
-  --accent-ruby-subtle: rgba(251, 54, 64, 0.14);
-  --accent-ruby-border: rgba(251, 54, 64, 0.4);
-  
-  --accent-coral: #ff525b;
-  --accent-gold: #f59e0b;
-  --accent-gold-subtle: rgba(245, 158, 11, 0.14);
+  --accent-ruby-glow: rgba(251, 54, 64, 0.28);
+  --accent-ruby-subtle: rgba(251, 54, 64, 0.12);
+  --accent-ruby-border: rgba(251, 54, 64, 0.35);
+
+  /* Secondary Accents */
+  --accent-coral: #ff5e66;
+  --accent-gold: #fbbf24;
+  --accent-gold-subtle: rgba(251, 191, 36, 0.12);
   --accent-cyan: #06b6d4;
-  
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
-  --border-subtle: #1e2838;
-  --border-hover: #2e3c50;
-  --border-active: #3e506a;
-  
+  --accent-cyan-subtle: rgba(6, 182, 212, 0.12);
+  --accent-emerald: #10b981;
+
+  /* Typography Colors (High Contrast - WCAG 2.1 AA Compliant) */
+  --text-primary: #ffffff;          /* 100% white for titles and primary labels */
+  --text-secondary: #cbd5e1;        /* High contrast silver-slate for subtitles & metadata */
+  --text-muted: #8493a8;            /* Legible muted gray for secondary body/dates */
+  --text-dim: #505e73;              /* Strictly for icons, inactive states, and subtle dividers */
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --border-focus: rgba(251, 54, 64, 0.5);
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 24px var(--accent-ruby-glow);
+
+  /* Radius & Transitions */
+  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
-  
-  --transition-fast: 0.14s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -42,22 +57,34 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   min-height: 100vh;
   width: 100vw;
   overflow-x: hidden;
   font-size: 15px;
+  line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: inherit;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 /* Minimalist Dark Scrollbars */
@@ -69,11 +96,17 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222d3d;
+  background: #1e2838;
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334358;
+  background: #2e3c50;
+}
+
+/* Accessible Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--accent-ruby);
+  outline-offset: 2px;
 }
 
 /* App Shell */
