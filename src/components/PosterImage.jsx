@@ -3,13 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Film } from 'lucide-react';
 import { fetchMovieMetadataByName } from '../services/tmdb';
 
-export default function PosterImage({ src, name, year, className = "poster-img" }) {
+export default function PosterImage({ src, name, year, className = "poster-img", style = {} }) {
   const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setImgSrc(src);
     setHasError(false);
+    setIsLoaded(false);
 
     // If no initial src, attempt fast metadata lookup
     if (!src && name) {
@@ -30,21 +32,32 @@ export default function PosterImage({ src, name, year, className = "poster-img" 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(145deg, #1c1c1c 0%, #111111 100%)',
-          border: '1px solid #282828',
+          background: 'linear-gradient(145deg, #18202e 0%, #0d121a 100%)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '4px',
-          padding: '10px',
+          padding: '12px',
           textAlign: 'center',
-          color: '#888888',
+          color: 'var(--text-muted)',
           height: '100%',
-          width: '100%'
+          width: '100%',
+          userSelect: 'none',
+          ...style
         }}
       >
-        <Film size={20} color="#555555" style={{ marginBottom: '6px' }} />
-        <span style={{ fontSize: '11px', fontWeight: '600', color: '#cccccc', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {name}
+        <Film size={22} color="var(--text-dim)" style={{ marginBottom: '8px' }} />
+        <span style={{
+          fontSize: '12px',
+          fontWeight: '700',
+          color: 'var(--text-secondary)',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          lineHeight: '1.3'
+        }}>
+          {name || 'Unknown Film'}
         </span>
-        {year && <span style={{ fontSize: '10px', color: '#666666', marginTop: '2px' }}>{year}</span>}
+        {year && <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{year}</span>}
       </div>
     );
   }
@@ -52,9 +65,10 @@ export default function PosterImage({ src, name, year, className = "poster-img" 
   return (
     <img
       src={imgSrc}
-      alt={name}
+      alt={name || 'Movie Poster'}
       className={className}
       loading="lazy"
+      onLoad={() => setIsLoaded(true)}
       onError={() => {
         // Fallback to fetch if the current URL failed
         if (name && !hasError) {
@@ -68,6 +82,11 @@ export default function PosterImage({ src, name, year, className = "poster-img" 
         } else {
           setHasError(true);
         }
+      }}
+      style={{
+        opacity: isLoaded ? 1 : 0,
+        transition: 'opacity 0.3s ease, transform var(--transition-fast)',
+        ...style
       }}
     />
   );

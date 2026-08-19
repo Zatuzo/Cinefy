@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Star, Sparkles, ChevronDown, Disc3, Compass, BarChart2, Calendar, Film, Settings } from 'lucide-react';
 import { searchTMDbMovies } from '../services/tmdb';
+import PosterImage from './PosterImage';
 
 export default function CinefyNavbar({ 
   currentTab, 
@@ -18,9 +19,32 @@ export default function CinefyNavbar({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
+  const searchInputRef = useRef(null);
   const searchDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
 
+  // Global Keyboard Shortcuts: ⌘K or / to search, Escape to close
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchOpen(true);
+      } else if (e.key === '/' && document.activeElement !== searchInputRef.current && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchOpen(true);
+      } else if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        setIsProfileOpen(false);
+        searchInputRef.current?.blur();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Debounced search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -39,6 +63,7 @@ export default function CinefyNavbar({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Click outside listener
   useEffect(() => {
     function handleClickOutside(e) {
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(e.target)) {
@@ -175,8 +200,9 @@ export default function CinefyNavbar({
           <div className="cf-search-wrapper" ref={searchDropdownRef}>
             <Search size={14} className="cf-search-icon" />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search films..."
+              placeholder="Search films... (⌘K)"
               className="cf-search-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -209,11 +235,13 @@ export default function CinefyNavbar({
                         setSearchQuery('');
                       }}
                     >
-                      <img
-                        src={movie.posterUrl || 'https://via.placeholder.com/92x138/181818/666666?text=No+Poster'}
-                        alt={movie.title}
-                        className="cf-result-thumb"
-                      />
+                      <div style={{ width: '36px', height: '52px', borderRadius: '3px', overflow: 'hidden', flexShrink: 0, background: '#0a0d14' }}>
+                        <PosterImage
+                          src={movie.posterUrl}
+                          name={movie.title}
+                          year={movie.year}
+                        />
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="cf-result-title">{movie.title}</div>
                         <div className="cf-result-meta">
