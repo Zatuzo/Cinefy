@@ -1,7 +1,7 @@
-/* src/styles/banner.css - Cinefy Taste Intelligence Ribbon Banner */
+/* src/styles/banner.css - Cinefy Minimalist Hero Banner & Daily Watchlist Spotlight */
 
 .cf-hero-banner {
-  background: linear-gradient(180deg, #101520 0%, #0a0d14 100%);
+  background: linear-gradient(180deg, #0d121c 0%, #0a0d14 100%);
   border-bottom: 1px solid var(--border-subtle);
   padding: 18px 0;
 }
@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
 @media (max-width: 768px) {
@@ -24,6 +24,7 @@
   }
 }
 
+/* Minimalist Left Greeting */
 .cf-banner-left {
   display: flex;
   flex-direction: column;
@@ -31,46 +32,121 @@
 }
 
 .cf-welcome-headline {
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
 .cf-user-name {
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.cf-banner-stats {
+.cf-welcome-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Daily Watchlist Spotlight Card */
+.cf-daily-pick-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.cf-stat-badge-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  gap: 12px;
   background: #141a24;
   border: 1px solid var(--border-subtle);
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
-  font-size: 13px;
-  color: var(--text-secondary);
-  user-select: none;
+  padding: 8px 12px 8px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  max-width: 440px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-.cf-stat-badge-item b {
-  color: #ffffff;
+.cf-daily-pick-card:hover {
+  background: #1a2230;
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
-.cf-persona-badge {
-  border-color: rgba(251, 54, 64, 0.4);
-  background: rgba(251, 54, 64, 0.1);
+.cf-daily-thumb-wrap {
+  width: 42px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #0a0d14;
 }
 
-.cf-persona-text {
+.cf-daily-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cf-daily-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.cf-daily-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--accent-ruby);
-  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.cf-daily-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-daily-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.cf-daily-director, .cf-daily-genre {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Interactive Shuffle Button */
+.cf-daily-shuffle-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.cf-daily-shuffle-btn:hover {
+  background: rgba(251, 54, 64, 0.18);
+  border-color: var(--accent-ruby);
+  color: #ffffff;
+  transform: rotate(45deg);
 }

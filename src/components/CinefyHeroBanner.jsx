@@ -1,51 +1,105 @@
 // src/components/CinefyHeroBanner.jsx
-import React from 'react';
-import { Sparkles, Star, Film, Bookmark, Clock } from 'lucide-react';
-import { calculateCinematicPersona } from '../data/personas';
+import React, { useState, useMemo } from 'react';
+import { Sparkles, Dices, Film, Bookmark } from 'lucide-react';
+import PosterImage from './PosterImage';
 
-export default function CinefyHeroBanner({ diary = [], watchlist = [] }) {
-  const persona = calculateCinematicPersona(diary);
-  const totalHours = (diary.reduce((acc, f) => acc + (f.runtime || 110), 0) / 60).toFixed(0);
-  const fiveStarsCount = diary.filter(f => Number(f.rating || f.Rating) === 5).length;
-  const ratings = diary.filter(f => f.rating || f.Rating).map(f => Number(f.rating || f.Rating));
-  const meanRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2) : 'N/A';
+// Deterministic daily index based on date string (YYYY-MM-DD)
+function getDailyIndex(length) {
+  if (!length || length <= 0) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    hash = ((hash << 5) - hash) + today.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % length;
+}
+
+export default function CinefyHeroBanner({ diary = [], watchlist = [], onSelectMovie }) {
+  // Deterministic daily pick from user's unwatched watchlist
+  const initialIndex = useMemo(() => getDailyIndex(watchlist.length), [watchlist.length]);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  const dailyFilm = watchlist[currentIndex] || watchlist[0] || null;
+
+  // Shuffle for a fresh random pick from the watchlist
+  const handleShuffle = (e) => {
+    e.stopPropagation();
+    if (watchlist.length <= 1) return;
+    let nextIdx = Math.floor(Math.random() * watchlist.length);
+    if (nextIdx === currentIndex) {
+      nextIdx = (nextIdx + 1) % watchlist.length;
+    }
+    setCurrentIndex(nextIdx);
+  };
 
   return (
     <section className="cf-hero-banner">
       <div className="cf-banner-inner">
+        {/* 1. Left: Minimalist Personal Greeting & Cinephile Tagline */}
         <div className="cf-banner-left">
-          <div className="cf-welcome-headline">
-            Welcome back, <span className="cf-user-name">Zatuzo</span>
-          </div>
+          <h1 className="cf-welcome-headline">
+            Hello, <span className="cf-user-name">Zatuzo</span>.
+          </h1>
+          <p className="cf-welcome-sub">
+            Ready for your next screening? Here is your daily watchlist discovery for tonight.
+          </p>
         </div>
 
-        {/* Clean Static Informational Stat Badges */}
-        <div className="cf-banner-stats">
-          <div className="cf-stat-badge-item">
-            <Film size={14} style={{ color: 'var(--accent-ruby)' }} />
-            <span><b>{diary.length}</b> Films</span>
-          </div>
+        {/* 2. Right: Daily Watchlist Discovery Spotlight Card */}
+        {dailyFilm && (
+          <div
+            className="cf-daily-pick-card"
+            onClick={() => onSelectMovie && onSelectMovie(dailyFilm)}
+            title="Click to view film details & log"
+          >
+            {/* Poster Thumbnail */}
+            <div className="cf-daily-thumb-wrap">
+              <PosterImage
+                src={dailyFilm.poster || dailyFilm.Poster}
+                name={dailyFilm.name || dailyFilm.Name}
+                year={dailyFilm.year || dailyFilm.Year}
+                className="cf-daily-thumb"
+              />
+            </div>
 
-          <div className="cf-stat-badge-item">
-            <Star size={14} fill="#f59e0b" color="#f59e0b" />
-            <span><b>{fiveStarsCount}</b> Masterpieces</span>
-          </div>
+            {/* Film Info */}
+            <div className="cf-daily-info">
+              <div className="cf-daily-tag">
+                <Sparkles size={11} style={{ color: 'var(--accent-ruby)' }} />
+                <span>TODAY'S WATCHLIST PICK</span>
+              </div>
+              <div className="cf-daily-title">
+                {dailyFilm.name || dailyFilm.Name}
+              </div>
+              <div className="cf-daily-meta">
+                <span>{dailyFilm.year || dailyFilm.Year || 'N/A'}</span>
+                {dailyFilm.director && dailyFilm.director !== 'Unknown Director' && dailyFilm.director !== 'Auteur' && (
+                  <>
+                    <span>•</span>
+                    <span className="cf-daily-director">{dailyFilm.director.split(',')[0]}</span>
+                  </>
+                )}
+                {dailyFilm.genre && (
+                  <>
+                    <span>•</span>
+                    <span className="cf-daily-genre">{dailyFilm.genre.split(',')[0]}</span>
+                  </>
+                )}
+              </div>
+            </div>
 
-          <div className="cf-stat-badge-item">
-            <Bookmark size={14} style={{ color: '#06b6d4' }} />
-            <span><b>{watchlist.length}</b> Watchlist</span>
+            {/* Shuffle Button */}
+            <button
+              className="cf-daily-shuffle-btn"
+              onClick={handleShuffle}
+              title="Shuffle another random film from your watchlist"
+              aria-label="Shuffle watchlist film"
+            >
+              <Dices size={15} />
+            </button>
           </div>
-
-          <div className="cf-stat-badge-item">
-            <Clock size={14} style={{ color: '#94a3b8' }} />
-            <span><b>{totalHours}</b> hrs (★ {meanRating})</span>
-          </div>
-
-          <div className="cf-stat-badge-item cf-persona-badge">
-            <Sparkles size={14} style={{ color: 'var(--accent-ruby)' }} />
-            <span className="cf-persona-text">{persona}</span>
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );

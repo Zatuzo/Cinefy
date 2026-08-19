@@ -53,12 +53,12 @@ export default function CinefyNavbar({
   }, []);
 
   const navLinks = [
-    { id: 'home', label: 'Home Dashboard', icon: Film },
-    { id: 'diary', label: 'Film Diary', icon: Calendar },
-    { id: 'rewind', label: 'Monthly Rewind', icon: Sparkles },
-    { id: 'mixes', label: 'Cinema Mixes', icon: Disc3 },
+    { id: 'home', label: 'Home', icon: Film },
+    { id: 'diary', label: 'Diary', icon: Calendar },
+    { id: 'rewind', label: 'Rewind', icon: Sparkles },
+    { id: 'mixes', label: 'Mixes', icon: Disc3 },
     { id: 'semantic', label: 'Vibe Search', icon: Compass },
-    { id: 'analytics', label: 'Taste Analytics', icon: BarChart2 }
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 }
   ];
 
   return (
