@@ -103,7 +103,7 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
                   ))}
                 </div>
 
-                {/* Title & Understated Vibe Caption */}
+                {/* Title & Film Count */}
                 <div
                   className="mix-deck-title"
                   style={{
@@ -112,7 +112,7 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
                 >
                   {mix.title}
                 </div>
-                <div className="mix-deck-vibe">{mix.vibeLabel || mix.genre.toLowerCase()}</div>
+                <div className="mix-deck-vibe">{mix.films.length} unwatched films</div>
               </div>
             );
           })}

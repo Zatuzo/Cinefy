@@ -452,9 +452,9 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                 ))}
               </div>
 
-              {/* Title & Understated Vibe Caption (Just like user design) */}
+              {/* Title & Clean Film Count */}
               <div className="mix-deck-title">{mix.title}</div>
-              <div className="mix-deck-vibe">{mix.vibeLabel || mix.genre.toLowerCase()}</div>
+              <div className="mix-deck-vibe">{mix.films.length} unwatched films</div>
             </div>
           ))}
         </div>
