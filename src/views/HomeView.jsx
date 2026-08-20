@@ -189,38 +189,10 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
         const runtime = dailyFilm.runtime || dailyFilm.Runtime;
 
         return (
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(251, 54, 64, 0.06) 0%, #101520 60%)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '24px',
-            marginBottom: '28px',
-            display: 'flex',
-            gap: '28px',
-            alignItems: 'stretch',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-          }}>
+          <div className="spotlight-card">
             {/* Large Movie Poster with Depth & Hover Elevation */}
             <div
-              style={{
-                width: '140px',
-                flexShrink: 0,
-                aspectRatio: '2 / 3',
-                borderRadius: 'var(--radius-sm)',
-                overflow: 'hidden',
-                background: '#0a0d14',
-                cursor: 'pointer',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 14px 36px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(251, 54, 64, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)';
-              }}
+              className="spotlight-poster-wrap"
               onClick={() => onSelectMovie(dailyFilm)}
             >
               <PosterImage
@@ -231,28 +203,31 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
               />
             </div>
 
-            {/* Film Details & Actions (Snapped top and bottom) */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            {/* Film Details & Actions */}
+            <div className="spotlight-content">
               {/* Top Block: Tag, Title, Enriched Meta Row, High-Contrast Synopsis */}
               <div>
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: 'var(--accent-ruby)',
-                  fontSize: '11px',
-                  fontWeight: '800',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  marginBottom: '4px'
-                }}>
+                <div
+                  className="spotlight-tag-row"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: 'var(--accent-ruby)',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    marginBottom: '4px'
+                  }}
+                >
                   <Sparkles size={13} />
                   <span>Recommended from your Watchlist today</span>
                 </div>
 
                 <h2
                   style={{
-                    fontSize: '26px',
+                    fontSize: '24px',
                     fontWeight: '900',
                     color: '#ffffff',
                     letterSpacing: '-0.02em',
@@ -265,15 +240,18 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                 </h2>
 
                 {/* Enriched Metadata Row */}
-                <div style={{
-                  fontSize: '13px',
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                  marginBottom: '10px'
-                }}>
+                <div
+                  className="spotlight-meta-row"
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                    marginBottom: '10px'
+                  }}
+                >
                   <span style={{ fontWeight: '800', color: '#ffffff' }}>
                     {dailyFilm.year || dailyFilm.Year || 'N/A'}
                   </span>
@@ -293,62 +271,62 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                   )}
 
                   {genreList.length > 0 && (
-                    <>
-                      <span>•</span>
-                      <div style={{ display: 'inline-flex', gap: '5px', flexWrap: 'wrap' }}>
-                        {genreList.map((g, idx) => (
-                          <span
-                            key={idx}
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.06)',
-                              border: '1px solid rgba(255, 255, 255, 0.09)',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: '600',
-                              color: '#e2e8f0'
-                            }}
-                          >
-                            {g}
-                          </span>
-                        ))}
-                      </div>
-                    </>
+                    <div className="spotlight-genres-row" style={{ display: 'inline-flex', gap: '5px', flexWrap: 'wrap' }}>
+                      {genreList.map((g, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            border: '1px solid rgba(255, 255, 255, 0.09)',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: '#e2e8f0'
+                          }}
+                        >
+                          {g}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
 
                 {/* High Contrast Synopsis */}
                 {dailyFilm.overview && (
-                  <p style={{
-                    fontSize: '13.5px',
-                    color: '#cbd5e1',
-                    lineHeight: '1.6',
-                    maxWidth: '720px',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
+                  <p
+                    className="spotlight-synopsis"
+                    style={{
+                      fontSize: '13.5px',
+                      color: '#cbd5e1',
+                      lineHeight: '1.6',
+                      maxWidth: '720px',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
                     {dailyFilm.overview}
                   </p>
                 )}
               </div>
 
-              {/* Bottom Block: Action Buttons Snapped to Bottom */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '14px', flexWrap: 'wrap' }}>
+              {/* Bottom Block: Action Buttons */}
+              <div className="spotlight-actions">
                 <button
                   className="btn-primary"
                   onClick={() => onSelectMovie(dailyFilm)}
                 >
-                  <Plus size={14} strokeWidth={3} />
+                  <Plus size={15} strokeWidth={3} />
                   <span>Log This Film</span>
                 </button>
 
                 <button
                   className="btn-secondary"
                   onClick={handleShuffleDaily}
-                  title="Pick another random film from your watchlist"
+                  title="Discover another random film from your watchlist"
                 >
                   <Dices size={15} />
                   <span>Pick Another</span>

@@ -16,7 +16,195 @@
 }
 
 /* =========================================================
-   1. DIARY VIEW & TABLE WORKSTATION
+   1. DAILY WATCHLIST SPOTLIGHT HERO CARD
+   ========================================================= */
+.spotlight-card {
+  background: linear-gradient(135deg, rgba(251, 54, 64, 0.08) 0%, #101520 60%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.spotlight-poster-wrap {
+  width: 150px;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #0a0d14;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.spotlight-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spotlight-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .spotlight-card {
+    flex-direction: column;
+    padding: 20px 16px;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .spotlight-poster-wrap {
+    width: 140px;
+    margin: 0 auto;
+  }
+
+  .spotlight-content {
+    width: 100%;
+    align-items: center;
+  }
+
+  .spotlight-tag-row {
+    justify-content: center !important;
+  }
+
+  .spotlight-meta-row {
+    justify-content: center !important;
+  }
+
+  .spotlight-genres-row {
+    justify-content: center !important;
+  }
+
+  .spotlight-synopsis {
+    text-align: center !important;
+  }
+
+  .spotlight-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .spotlight-actions button {
+    flex: 1;
+    min-width: 130px;
+    height: 44px;
+  }
+}
+
+/* =========================================================
+   2. TASTE INTELLIGENCE MICRO-RIBBON
+   ========================================================= */
+.taste-ribbon {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.taste-ribbon-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.taste-ribbon-tile:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.taste-ribbon-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.taste-ribbon-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.taste-ribbon-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.taste-ribbon-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .taste-ribbon {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .taste-ribbon-tile {
+    padding: 10px 6px;
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .taste-ribbon-icon-wrap {
+    width: 32px;
+    height: 32px;
+    margin: 0 auto;
+  }
+
+  .taste-ribbon-label {
+    font-size: 9.5px;
+  }
+
+  .taste-ribbon-val {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 440px) {
+  .taste-ribbon-label {
+    font-size: 8.5px;
+  }
+
+  .taste-ribbon-val {
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   3. DIARY VIEW & TABLE WORKSTATION
    ========================================================= */
 .diary-view-container {
   width: 100%;
@@ -236,11 +424,11 @@
 }
 
 /* =========================================================
-   2. HERO & KPI STAGES (REWIND & ANALYTICS)
+   4. HERO & KPI STAGES (REWIND & ANALYTICS)
    ========================================================= */
 .hero-stage {
   border-radius: var(--radius-md);
-  padding: 26px;
+  padding: 24px;
   margin-bottom: 32px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -257,7 +445,7 @@
 }
 
 .hero-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 6px;
@@ -266,7 +454,7 @@
 .hero-kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 12px;
   margin-top: 20px;
 }
 
@@ -305,7 +493,7 @@
 }
 
 /* =========================================================
-   3. SCROLLABLE MEDIA RAIL WITH FLOATING ARROWS
+   5. SCROLLABLE MEDIA RAIL WITH FLOATING ARROWS
    ========================================================= */
 .rail-wrapper {
   position: relative;
@@ -361,72 +549,7 @@
 }
 
 /* =========================================================
-   4. TASTE INTELLIGENCE MICRO-RIBBON
-   ========================================================= */
-.taste-ribbon {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 40px;
-}
-
-@media (max-width: 860px) {
-  .taste-ribbon {
-    grid-template-columns: 1fr;
-  }
-}
-
-.taste-ribbon-tile {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.taste-ribbon-tile:hover {
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
-}
-
-.taste-ribbon-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.taste-ribbon-info {
-  min-width: 0;
-  flex: 1;
-}
-
-.taste-ribbon-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-
-.taste-ribbon-val {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* =========================================================
-   5. ZERO-STATE FALLBACK CARDS
+   6. ZERO-STATE FALLBACK CARDS
    ========================================================= */
 .empty-state-card {
   background: var(--bg-card);
