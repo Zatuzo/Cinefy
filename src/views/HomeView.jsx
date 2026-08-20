@@ -429,46 +429,18 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
         </div>
 
         <div className="mix-grid">
-          {mixes.map((mix, idx) => (
+          {mixes.map((mix) => (
             <div
               key={mix.id}
-              className="mix-card"
+              className="mix-deck-item"
               onClick={() => onSelectMix(mix)}
-              style={{ position: 'relative' }}
             >
-              {/* Dynamic Gradient Top Accent Bar */}
-              <div
-                className="mix-card-top-bar"
-                style={{
-                  background: MIX_TOP_GRADIENTS[idx % MIX_TOP_GRADIENTS.length],
-                  width: '36px',
-                  height: '3.5px'
-                }}
-              />
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                <div className="mix-card-title" style={{ margin: 0 }}>{mix.title}</div>
-                <span style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '2px 7px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  color: 'var(--text-secondary)'
-                }}>
-                  {mix.films.length}
-                </span>
-              </div>
-
-              <div className="mix-card-desc">{mix.description}</div>
-
-              {/* Fanned Poster Deck on Hover */}
-              <div className="mix-deck-container">
+              {/* Layered Stepped Poster Deck (fans open on hover) */}
+              <div className="mix-deck-stage">
                 {mix.films.slice(0, 4).map((film, fIdx) => (
                   <div
                     key={film.id || fIdx}
-                    className={`deck-card deck-card-${fIdx}`}
+                    className={`deck-poster deck-poster-${fIdx}`}
                   >
                     <PosterImage
                       src={film.poster}
@@ -479,6 +451,10 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                   </div>
                 ))}
               </div>
+
+              {/* Title & Understated Vibe Caption (Just like user design) */}
+              <div className="mix-deck-title">{mix.title}</div>
+              <div className="mix-deck-vibe">{mix.vibeLabel || mix.genre.toLowerCase()}</div>
             </div>
           ))}
         </div>

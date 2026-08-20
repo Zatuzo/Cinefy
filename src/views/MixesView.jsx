@@ -66,56 +66,32 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
       </div>
 
       {/* 2. Cinema Mixes Grid with Fanned Poster Deck Hover Effect */}
-      <div style={{ marginBottom: '36px' }}>
+      <div style={{ marginBottom: '40px' }}>
         <div className="mix-grid">
-          {mixes.map((mix, idx) => {
+          {mixes.map((mix) => {
             const isSelected = currentMix?.id === mix.id;
 
             return (
               <div
                 key={mix.id}
-                className="mix-card"
+                className="mix-deck-item"
                 onClick={() => setSelectedMixId(mix.id)}
                 style={{
-                  position: 'relative',
-                  borderColor: isSelected ? 'var(--accent-ruby-border)' : 'var(--border-subtle)',
-                  background: isSelected ? 'linear-gradient(135deg, rgba(251, 54, 64, 0.08) 0%, #131926 100%)' : 'var(--bg-card)',
-                  boxShadow: isSelected ? '0 0 20px var(--accent-ruby-glow)' : 'none'
+                  transform: isSelected ? 'scale(1.02)' : 'scale(1)'
                 }}
               >
-                {/* Dynamic Gradient Top Accent Bar */}
+                {/* Layered Stepped Poster Deck (fans open on hover) */}
                 <div
-                  className="mix-card-top-bar"
+                  className="mix-deck-stage"
                   style={{
-                    background: MIX_GRADIENTS[idx % MIX_GRADIENTS.length],
-                    width: '36px',
-                    height: '3.5px'
+                    filter: isSelected ? 'drop-shadow(0 0 16px var(--accent-ruby-glow))' : 'none'
                   }}
-                />
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                  <div className="mix-card-title" style={{ margin: 0, fontSize: '15px' }}>{mix.title}</div>
-                  <span style={{
-                    background: isSelected ? 'var(--accent-ruby)' : 'rgba(255, 255, 255, 0.06)',
-                    border: `1px solid ${isSelected ? 'var(--accent-ruby)' : 'var(--border-subtle)'}`,
-                    padding: '2px 7px',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: '800',
-                    color: isSelected ? '#ffffff' : 'var(--text-secondary)'
-                  }}>
-                    {mix.films.length}
-                  </span>
-                </div>
-
-                <div className="mix-card-desc">{mix.description}</div>
-
-                {/* Fanned Poster Deck on Hover */}
-                <div className="mix-deck-container">
+                >
                   {mix.films.slice(0, 4).map((film, fIdx) => (
                     <div
                       key={film.id || fIdx}
-                      className={`deck-card deck-card-${fIdx}`}
+                      className={`deck-poster deck-poster-${fIdx}`}
+                      style={isSelected && fIdx === 0 ? { borderColor: 'var(--accent-ruby)' } : {}}
                     >
                       <PosterImage
                         src={film.poster}
@@ -126,6 +102,17 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
                     </div>
                   ))}
                 </div>
+
+                {/* Title & Understated Vibe Caption */}
+                <div
+                  className="mix-deck-title"
+                  style={{
+                    color: isSelected ? 'var(--accent-ruby)' : 'var(--text-primary)'
+                  }}
+                >
+                  {mix.title}
+                </div>
+                <div className="mix-deck-vibe">{mix.vibeLabel || mix.genre.toLowerCase()}</div>
               </div>
             );
           })}

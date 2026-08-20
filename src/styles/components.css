@@ -163,138 +163,144 @@
 }
 
 /* =========================================================
-   3. DAILY MIX CARDS
+   3. CINEMA MIXES - BORDERLESS FANNED POSTER DECKS
    ========================================================= */
 .mix-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 28px;
+  align-items: flex-start;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1200px) {
   .mix-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 580px) {
   .mix-grid {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
 }
 
-.mix-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+.mix-deck-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  user-select: none;
+  transition: transform var(--transition-fast);
 }
 
-.mix-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
-}
-
-.mix-card-top-bar {
-  height: 3px;
-  width: 28px;
-  background: var(--accent-ruby);
-  border-radius: 2px;
-  margin-bottom: 12px;
-  box-shadow: 0 0 8px var(--accent-ruby-glow);
-}
-
-.mix-card-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 5px;
-  color: var(--text-primary);
-}
-
-.mix-card-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.45;
-  margin-bottom: 12px;
-  min-height: 34px;
-}
-
-/* =========================================================
-   FANNED POSTER DECK HOVER ANIMATION (CINEMA MIX CARDS)
-   ========================================================= */
-.mix-deck-container {
+.mix-deck-stage {
   position: relative;
   width: 100%;
-  height: 130px;
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding-right: 14px;
-  overflow: visible;
+  max-width: 220px;
+  aspect-ratio: 2 / 3;
+  margin: 0 auto 14px auto;
+  perspective: 1200px;
 }
 
-.deck-card {
+.deck-poster {
   position: absolute;
-  width: 80px;
-  aspect-ratio: 2 / 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #0a0d14;
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
   transform-origin: bottom left;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, opacity 0.35s ease;
+  transition: transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.38s ease, filter 0.38s ease;
   will-change: transform;
 }
 
-/* Resting Stacked State */
-.deck-card-0 {
+/* Resting Stacked State (Layered stepped edges behind front card) */
+.deck-poster-0 {
   z-index: 4;
   transform: translate(0, 0) rotate(0deg);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
 }
 
-.deck-card-1 {
+.deck-poster-1 {
   z-index: 3;
-  transform: translate(-8px, 0) rotate(0deg);
-  opacity: 0.95;
+  transform: translate(-5px, -3px) rotate(-1.5deg);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  filter: brightness(0.92);
 }
 
-.deck-card-2 {
+.deck-poster-2 {
   z-index: 2;
-  transform: translate(-16px, 0) rotate(0deg);
-  opacity: 0.9;
+  transform: translate(-10px, -6px) rotate(-3deg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+  filter: brightness(0.85);
 }
 
-.deck-card-3 {
+.deck-poster-3 {
   z-index: 1;
-  transform: translate(-24px, 0) rotate(0deg);
-  opacity: 0.85;
+  transform: translate(-15px, -9px) rotate(-4.5deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  filter: brightness(0.78);
 }
 
 /* Hover Fanned Out State */
-.mix-card:hover .deck-card-0 {
-  transform: scale(1.02) translateY(-4px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(251, 54, 64, 0.3);
+.mix-deck-item:hover .deck-poster-0 {
+  transform: scale(1.02) translateY(-6px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(251, 54, 64, 0.4);
 }
 
-.mix-card:hover .deck-card-1 {
-  transform: rotate(-7deg) translate(-22px, -3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+.mix-deck-item:hover .deck-poster-1 {
+  transform: rotate(-6.5deg) translate(-22px, -6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
+  filter: brightness(1);
 }
 
-.mix-card:hover .deck-card-2 {
-  transform: rotate(-14deg) translate(-44px, -4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+.mix-deck-item:hover .deck-poster-2 {
+  transform: rotate(-13deg) translate(-44px, -10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.95);
 }
 
-.mix-card:hover .deck-card-3 {
-  transform: rotate(-21deg) translate(-66px, -4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+.mix-deck-item:hover .deck-poster-3 {
+  transform: rotate(-19.5deg) translate(-66px, -14px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+  filter: brightness(0.9);
+}
+
+.mix-deck-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 3px;
+  transition: color var(--transition-fast);
+}
+
+.mix-deck-item:hover .mix-deck-title {
+  color: var(--accent-ruby);
+}
+
+.mix-deck-vibe {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.mix-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .mix-thumb {

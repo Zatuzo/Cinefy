@@ -1,6 +1,21 @@
 // src/services/mixEngine.js
 import { fetchDiscoverByGenre } from './tmdb';
 
+const GENRE_VIBE_LABELS = {
+  'Drama': 'essential discoveries',
+  'Thriller': 'uncomfortable and disturbing',
+  'Crime': 'morally complex & raw',
+  'Sci-Fi': 'high concept mindbenders',
+  'Horror': 'dread & psychological tension',
+  'Mystery': 'atmospheric & slow burns',
+  'Romance': 'intimate character studies',
+  'Comedy': 'dark wit & sharp dialogue',
+  'Animation': 'surreal visual journeys',
+  'Adventure': 'expansive worldbuilding',
+  'Action': 'relentless momentum',
+  'Documentary': 'unflinching true stories'
+};
+
 export function buildCinemaMixes(diary = [], watchlist = [], numMixes = 6) {
   if (!diary || diary.length === 0) return [];
 
@@ -31,10 +46,13 @@ export function buildCinemaMixes(diary = [], watchlist = [], numMixes = 6) {
       return isGenreMatch && isNotWatched;
     });
 
+    const vibeLabel = GENRE_VIBE_LABELS[genre] || `${genre.toLowerCase()} highlights`;
+
     return {
       id: `mix_${genre.toLowerCase().replace(/\s+/g, '_')}`,
       title: `${genre} Mix`,
       genre,
+      vibeLabel,
       description: `Unwatched ${genre.toLowerCase()} discoveries and watchlist recommendations tailored to your taste profile.`,
       films: fromWatchlist
     };
