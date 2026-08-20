@@ -1,6 +1,20 @@
 // src/views/AnalyticsView.jsx
 import React, { useState, useMemo } from 'react';
-import { BarChart2, Calendar, Film, Star, TrendingUp, Award, Sparkles, X, Clock, Layers, Filter } from 'lucide-react';
+import { 
+  BarChart2, 
+  Calendar, 
+  Film, 
+  Star, 
+  TrendingUp, 
+  Award, 
+  Sparkles, 
+  X, 
+  Clock, 
+  Layers, 
+  CheckCircle2,
+  Compass,
+  ArrowUpRight
+} from 'lucide-react';
 import MovieCard from '../components/MovieCard';
 import { DAY_ORDER } from '../config';
 
@@ -106,6 +120,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
   const totalHours = (totalMinutes / 60).toFixed(1);
   const ratingsList = filteredDiary.filter(f => f.rating || f.Rating).map(f => Number(f.rating || f.Rating));
   const meanRating = ratingsList.length > 0 ? (ratingsList.reduce((a, b) => a + b, 0) / ratingsList.length).toFixed(2) : 'N/A';
+  const numericMean = ratingsList.length > 0 ? ratingsList.reduce((a, b) => a + b, 0) / ratingsList.length : 0;
   const perfect5Count = filteredDiary.filter(f => Number(f.rating || f.Rating) === 5).length;
 
   // 1. Star Rating Distribution (0.5 to 5.0)
@@ -154,6 +169,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
   });
   const sortedDecades = Object.keys(decadeGroups).sort();
   const maxDecadeCount = Math.max(...Object.values(decadeGroups).map(g => g.length), 1);
+  const topDecade = sortedDecades.length > 0 ? sortedDecades.reduce((a, b) => (decadeGroups[a]?.length || 0) > (decadeGroups[b]?.length || 0) ? a : b) : '2020s';
 
   // 4. Day of the Week Rhythm
   const dayGroups = {};
@@ -211,6 +227,29 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
     .map(name => ({ name, films: genreMap[name], count: genreMap[name].length }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
+  const leadingGenre = topGenres[0]?.name || 'Drama';
+
+  // 7. Critic Persona & Taste DNA Calculation
+  const criticPersona = useMemo(() => {
+    let generosity = 'Balanced Critic';
+    let generosityDesc = 'Even-handed ratings distribution across your logged screenings.';
+
+    if (numericMean >= 4.0) {
+      generosity = 'Enthusiastic Cinephile';
+      generosityDesc = 'Ratings trend exceptionally high with a strong passion for celebrating film craft.';
+    } else if (numericMean < 3.3) {
+      generosity = 'Tough Evaluator';
+      generosityDesc = 'Demanding and rigorous standards before awarding top star ratings.';
+    }
+
+    const archetype = `${topDecade} ${leadingGenre} Purist`;
+
+    return {
+      generosity,
+      generosityDesc,
+      archetype
+    };
+  }, [numericMean, topDecade, leadingGenre]);
 
   if (diary.length === 0) {
     return (
@@ -286,7 +325,69 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
         </div>
       </div>
 
-      {/* 2. Interactive KPI Ribbon Stage */}
+      {/* 2. Dynamic Critic Persona Banner (Taste DNA) */}
+      <div 
+        style={{
+          background: 'linear-gradient(135deg, rgba(251, 54, 64, 0.08) 0%, #101520 60%)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '24px',
+          marginBottom: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '20px',
+          cursor: 'pointer',
+          transition: 'all var(--transition-fast)'
+        }}
+        onClick={() => openDrillDown('Taste DNA Defining Masterpieces', 'Films with ★ 4.5+ ratings shaping your taste profile', filteredDiary.filter(f => Number(f.rating || f.Rating) >= 4.5))}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-ruby-border)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      >
+        <div>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: 'var(--accent-ruby)',
+            fontSize: '11px',
+            fontWeight: '800',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginBottom: '6px'
+          }}>
+            <Sparkles size={13} />
+            <span>CRITIC PERSONA & TASTE DNA</span>
+          </div>
+
+          <h2 style={{ fontSize: '22px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.01em', marginBottom: '4px' }}>
+            {criticPersona.archetype} • {criticPersona.generosity}
+          </h2>
+
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: '1.5' }}>
+            {criticPersona.generosityDesc} Rooted in {topDecade} cinema with a strong preference for {leadingGenre} storytelling.
+          </p>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(251, 54, 64, 0.12)',
+          border: '1px solid var(--accent-ruby-border)',
+          color: '#ffffff',
+          padding: '10px 18px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: '13px',
+          fontWeight: '800'
+        }}>
+          <span>Inspect Taste DNA</span>
+          <ArrowUpRight size={15} style={{ color: 'var(--accent-ruby)' }} />
+        </div>
+      </div>
+
+      {/* 3. Interactive KPI Ribbon Stage */}
       <div className="hero-stage" style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <span className="hero-tag">
@@ -336,7 +437,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
         </div>
       </div>
 
-      {/* 3. Row 1: Rating Distribution Histogram & Monthly Activity Trend */}
+      {/* 4. Row 1: Rating Distribution Histogram & Monthly Activity Trend */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '24px', marginBottom: '28px' }}>
         
         {/* GRAPH 1: Star Rating Distribution (Clickable Bars) */}
@@ -374,7 +475,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
                   }}
                   onMouseEnter={() => setHoveredDataPoint(`rating_${rating}`)}
                   onMouseLeave={() => setHoveredDataPoint(null)}
-                  onClick={() => count > 0 && openDrillDown(`Films Rated ★ ${rating}`, `${count} films`, bucket)}
+                  onClick={() => count > 0 && openDrillDown(`Films Rated ★ ${rating}`, `${count} films logged`, bucket)}
                 >
                   {/* Tooltip on Hover */}
                   {isHovered && count > 0 && (
@@ -392,7 +493,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
                       zIndex: 10,
                       boxShadow: '0 6px 16px rgba(0,0,0,0.7)'
                     }}>
-                      ★ {rating}: {count} {count === 1 ? 'film' : 'films'} ({Math.round((count / (totalRatedCount || 1)) * 100)}%)
+                      ★ {rating}: {count} {count === 1 ? 'film' : 'films'} ({Math.round((count / (totalRatedCount || 1)) * 100)}%) • Click to inspect
                     </div>
                   )}
 
@@ -434,7 +535,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
               <h3 style={{ fontSize: '16px', fontWeight: '800' }}>Activity Trend</h3>
             </div>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
-              Click any month point
+              Click any month node
             </span>
           </div>
 
@@ -508,15 +609,21 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
 
             {/* Bottom Month Labels */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
-              <span>{sortedMonths[0] ? formatMonthLabel(sortedMonths[0]) : ''}</span>
-              <span>{sortedMonths[Math.floor(sortedMonths.length / 2)] ? formatMonthLabel(sortedMonths[Math.floor(sortedMonths.length / 2)]) : ''}</span>
-              <span>{sortedMonths[sortedMonths.length - 1] ? formatMonthLabel(sortedMonths[sortedMonths.length - 1]) : ''}</span>
+              <span style={{ cursor: 'pointer' }} onClick={() => sortedMonths[0] && openDrillDown(`Screenings in ${formatMonthLabel(sortedMonths[0])}`, '', monthGroups[sortedMonths[0]])}>
+                {sortedMonths[0] ? formatMonthLabel(sortedMonths[0]) : ''}
+              </span>
+              <span style={{ cursor: 'pointer' }} onClick={() => sortedMonths[Math.floor(sortedMonths.length / 2)] && openDrillDown(`Screenings in ${formatMonthLabel(sortedMonths[Math.floor(sortedMonths.length / 2)])}`, '', monthGroups[sortedMonths[Math.floor(sortedMonths.length / 2)]])}>
+                {sortedMonths[Math.floor(sortedMonths.length / 2)] ? formatMonthLabel(sortedMonths[Math.floor(sortedMonths.length / 2)]) : ''}
+              </span>
+              <span style={{ cursor: 'pointer' }} onClick={() => sortedMonths[sortedMonths.length - 1] && openDrillDown(`Screenings in ${formatMonthLabel(sortedMonths[sortedMonths.length - 1])}`, '', monthGroups[sortedMonths[sortedMonths.length - 1]])}>
+                {sortedMonths[sortedMonths.length - 1] ? formatMonthLabel(sortedMonths[sortedMonths.length - 1]) : ''}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 4. Row 2: Decade Distribution & Weekly Viewing Rhythm */}
+      {/* 5. Row 2: Decade Distribution & Weekly Viewing Rhythm */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '24px', marginBottom: '28px' }}>
         
         {/* GRAPH 3: Decade Distribution (Clickable Rows) */}
@@ -626,7 +733,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
                       zIndex: 10,
                       boxShadow: '0 6px 16px rgba(0,0,0,0.7)'
                     }}>
-                      {day}: {count} {count === 1 ? 'film' : 'films'}
+                      {day}: {count} {count === 1 ? 'film' : 'films'} • Click to inspect
                     </div>
                   )}
 
@@ -661,7 +768,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
         </div>
       </div>
 
-      {/* 5. Row 3: Top Genres Breakdown (Clickable Genre Badges) */}
+      {/* 6. Row 3: Top Genres Breakdown (Clickable Genre Badges) */}
       <div style={{ background: '#141a24', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px', marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -706,7 +813,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
         </div>
       </div>
 
-      {/* 6. Row 4: Top Directors Leaderboard (Clickable Director Cards) */}
+      {/* 7. Row 4: Top Directors Leaderboard (Clickable Director Cards) */}
       <div style={{ background: '#141a24', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -776,7 +883,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
       </div>
 
       {/* =========================================================
-          7. UNIVERSAL CLICK-TO-DRILL-DOWN MODAL
+          8. UNIVERSAL CLICK-TO-DRILL-DOWN MODAL
           ========================================================= */}
       {drillDown.isOpen && (
         <div className="modal-backdrop" onClick={closeDrillDown}>
@@ -834,7 +941,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
               }}>
                 {drillDown.films.map((film, idx) => (
                   <MovieCard
-                    key={film.id || `${film.name}-${idx}`}
+                    key={film.id || `${film.name || film.Name}-${idx}`}
                     movie={film}
                     onSelect={(f) => {
                       closeDrillDown();
