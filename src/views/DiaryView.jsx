@@ -1,11 +1,10 @@
 // src/views/DiaryView.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import MovieCard from '../components/MovieCard';
 import PosterImage from '../components/PosterImage';
 import { 
   Calendar, 
   Film, 
-  Sparkles, 
   Search, 
   SlidersHorizontal, 
   LayoutGrid, 
@@ -14,11 +13,16 @@ import {
   Star, 
   Layers, 
   RotateCcw,
-  Edit3
+  Edit3,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  ChevronDown
 } from 'lucide-react';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ITEMS_PER_PAGE = 24;
 
 function formatCardDate(dateStr) {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.length < 10) return null;
@@ -66,6 +70,8 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
   const [selectedGenre, setSelectedGenre] = useState('ALL');
   const [selectedRating, setSelectedRating] = useState('ALL');
   const [sortBy, setSortBy] = useState('date-desc');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Extract unique months from diary
   const availableMonths = useMemo(() => {
@@ -93,6 +99,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
 
   // Check if any filter is active
   const hasActiveFilters = searchQuery.trim() !== '' || selectedMonth !== 'ALL' || selectedGenre !== 'ALL' || selectedRating !== 'ALL';
+  const activeFilterCount = (selectedMonth !== 'ALL' ? 1 : 0) + (selectedGenre !== 'ALL' ? 1 : 0) + (selectedRating !== 'ALL' ? 1 : 0);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -100,7 +107,13 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
     setSelectedGenre('ALL');
     setSelectedRating('ALL');
     setSortBy('date-desc');
+    setCurrentPage(1);
   };
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedMonth, selectedGenre, selectedRating, sortBy]);
 
   // 3. Filter and Sort Diary Films
   const filteredAndSortedFilms = useMemo(() => {
@@ -171,18 +184,18 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
     return list;
   }, [diary, searchQuery, selectedMonth, selectedGenre, selectedRating, sortBy]);
 
-  // 4. Group by Month for Continuous Poster Grid Mode
-  const monthSections = useMemo(() => {
-    if (selectedMonth !== 'ALL') {
-      return [{
-        monthKey: selectedMonth,
-        monthTitle: formatMonthHeader(selectedMonth),
-        films: filteredAndSortedFilms
-      }];
-    }
+  // Pagination slicing
+  const totalItems = filteredAndSortedFilms.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+  const paginatedFilms = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedFilms.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAndSortedFilms, currentPage]);
 
+  // 4. Group by Month for the Current Page
+  const monthSections = useMemo(() => {
     const groups = {};
-    filteredAndSortedFilms.forEach(film => {
+    paginatedFilms.forEach(film => {
       const d = film.date || film.Watched_Date || film.Date;
       const key = d && typeof d === 'string' && d.length >= 7 ? d.slice(0, 7) : 'Undated';
       if (!groups[key]) groups[key] = [];
@@ -197,7 +210,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         monthTitle: key === 'Undated' ? 'Undated Screenings' : formatMonthHeader(key),
         films: groups[key]
       }));
-  }, [filteredAndSortedFilms, selectedMonth]);
+  }, [paginatedFilms]);
 
   // 5. Quick-Stats Calculations for currently filtered subset
   const filteredMetrics = useMemo(() => {
@@ -239,7 +252,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.02em' }}>Film Diary</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '3px' }}>
-            Complete chronological viewing log with multi-view table workstation and custom filters.
+            Complete chronological viewing log with multi-view workstation and instant search.
           </p>
         </div>
       </div>
@@ -287,15 +300,15 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         </div>
       </div>
 
-      {/* 3. Comprehensive Multi-Filter & Sort Toolbar */}
+      {/* 3. Compact Collapsible Toolbar */}
       <div className="diary-toolbar">
-        {/* Top Row: Search + Reset + View Mode Toggle */}
+        {/* Top Primary Bar: Instant Search + Filter Toggle + View Mode Toggle */}
         <div className="diary-toolbar-top">
           <div className="diary-search-box">
             <Search size={16} style={{ position: 'absolute', left: '14px', top: '14px', color: 'var(--text-dim)' }} />
             <input
               type="text"
-              placeholder="Search title, director, review..."
+              placeholder="Search title, director, review notes..."
               className="form-input"
               style={{ paddingLeft: '40px', height: '44px', fontSize: '13.5px' }}
               value={searchQuery}
@@ -303,18 +316,51 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Filter Toggle Button */}
+            <button
+              className={`btn-secondary ${isFiltersOpen || activeFilterCount > 0 ? 'active' : ''}`}
+              onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+              style={{
+                height: '44px',
+                padding: '0 14px',
+                fontSize: '13px',
+                gap: '6px',
+                background: isFiltersOpen || activeFilterCount > 0 ? 'rgba(251, 54, 64, 0.12)' : 'var(--bg-card)',
+                borderColor: isFiltersOpen || activeFilterCount > 0 ? 'var(--accent-ruby-border)' : 'var(--border-subtle)',
+                color: isFiltersOpen || activeFilterCount > 0 ? '#ffffff' : 'var(--text-secondary)'
+              }}
+              title="Toggle filter controls"
+            >
+              <SlidersHorizontal size={15} style={{ color: activeFilterCount > 0 ? 'var(--accent-ruby)' : 'inherit' }} />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span style={{
+                  background: 'var(--accent-ruby)',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  marginLeft: '2px'
+                }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
             {hasActiveFilters && (
               <button
                 onClick={handleResetFilters}
                 className="btn-ghost"
-                style={{ color: 'var(--accent-ruby)', fontSize: '13px', fontWeight: '800', gap: '6px', height: '44px', padding: '0 14px' }}
+                style={{ color: 'var(--accent-ruby)', fontSize: '13px', fontWeight: '800', gap: '4px', height: '44px', padding: '0 10px' }}
+                title="Reset all filters"
               >
                 <RotateCcw size={14} />
-                <span>Reset</span>
               </button>
             )}
 
+            {/* Grid / Table Toggle */}
             <div className="view-mode-toggle">
               <button
                 className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -336,59 +382,61 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
           </div>
         </div>
 
-        {/* Bottom Row: 4-Column Responsive Filter Grid */}
-        <div className="diary-toolbar-bottom">
-          {/* Month Dropdown */}
-          <select
-            className="diary-filter-select"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            <option value="ALL">All Months ({diary.length})</option>
-            {availableMonths.map(m => (
-              <option key={m} value={m}>
-                {formatMonthHeader(m)}
-              </option>
-            ))}
-          </select>
+        {/* Collapsible Secondary Filter Dropdowns */}
+        {isFiltersOpen && (
+          <div className="diary-toolbar-bottom" style={{ animation: 'viewFadeIn 0.18s ease forwards' }}>
+            {/* Month Dropdown */}
+            <select
+              className="diary-filter-select"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              <option value="ALL">All Months ({diary.length})</option>
+              {availableMonths.map(m => (
+                <option key={m} value={m}>
+                  {formatMonthHeader(m)}
+                </option>
+              ))}
+            </select>
 
-          {/* Genre Dropdown */}
-          <select
-            className="diary-filter-select"
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-          >
-            <option value="ALL">All Genres</option>
-            {availableGenres.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
+            {/* Genre Dropdown */}
+            <select
+              className="diary-filter-select"
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+            >
+              <option value="ALL">All Genres</option>
+              {availableGenres.map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
 
-          {/* Rating Dropdown */}
-          <select
-            className="diary-filter-select"
-            value={selectedRating}
-            onChange={(e) => setSelectedRating(e.target.value)}
-          >
-            <option value="ALL">All Ratings</option>
-            <option value="5.0">5★ Masterpieces</option>
-            <option value="4.0+">4★ and Above</option>
-            <option value="3.0+">3★ and Above</option>
-          </select>
+            {/* Rating Dropdown */}
+            <select
+              className="diary-filter-select"
+              value={selectedRating}
+              onChange={(e) => setSelectedRating(e.target.value)}
+            >
+              <option value="ALL">All Ratings</option>
+              <option value="5.0">5★ Masterpieces</option>
+              <option value="4.0+">4★ and Above</option>
+              <option value="3.0+">3★ and Above</option>
+            </select>
 
-          {/* Sort Dropdown */}
-          <select
-            className="diary-filter-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="date-desc">Date (Newest first)</option>
-            <option value="date-asc">Date (Oldest first)</option>
-            <option value="rating-desc">Rating (Highest first)</option>
-            <option value="year-desc">Release Year (Newest)</option>
-            <option value="title-asc">Title (A → Z)</option>
-          </select>
-        </div>
+            {/* Sort Dropdown */}
+            <select
+              className="diary-filter-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="date-desc">Date (Newest first)</option>
+              <option value="date-asc">Date (Oldest first)</option>
+              <option value="rating-desc">Rating (Highest first)</option>
+              <option value="year-desc">Release Year (Newest)</option>
+              <option value="title-asc">Title (A → Z)</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* 4. Main Body: Grid View vs. Table View */}
@@ -408,13 +456,13 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         /* =========================================================
            VIEW MODE A: CONTINUOUS POSTER GRID
            ========================================================= */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '38px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {monthSections.map(section => (
             <div key={section.monthKey} className="diary-month-group">
               {/* Month Section Header */}
-              <div className="section-header" style={{ marginBottom: '18px' }}>
+              <div className="section-header" style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h2 className="section-title" style={{ fontSize: '19px' }}>
+                  <h2 className="section-title" style={{ fontSize: '18px' }}>
                     {section.monthTitle}
                   </h2>
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>
@@ -426,8 +474,8 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               {/* Full-Width Poster Grid */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))',
-                gap: '20px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '18px'
               }}>
                 {section.films.map((film, fIdx) => {
                   const dateLabel = formatCardDate(film.date || film.Watched_Date || film.Date);
@@ -463,7 +511,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedFilms.map((film, idx) => {
+              {paginatedFilms.map((film, idx) => {
                 const dateInfo = formatTableDate(film.date || film.Watched_Date || film.Date, film.dayOfWeek || film.Day_of_Week);
                 const director = film.director && film.director !== 'Unknown Director' && film.director !== 'Auteur'
                   ? film.director.split(',')[0].trim()
@@ -501,7 +549,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
                     {/* Film Title & Year */}
                     <td>
                       <div style={{ fontWeight: '800', fontSize: '14px', color: '#ffffff' }}>
-                        {film.name || film.title}
+                        {film.name || film.Name || film.title}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
                         {film.year || 'N/A'}
@@ -556,6 +604,64 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 5. Pagination Bar (No Infinite Scroll Machine) */}
+      {totalItems > ITEMS_PER_PAGE && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: '36px',
+          paddingTop: '20px',
+          borderTop: '1px solid var(--border-subtle)',
+          flexWrap: 'wrap',
+          gap: '14px'
+        }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
+            Showing <b style={{ color: '#ffffff' }}>{(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</b> of <b style={{ color: '#ffffff' }}>{totalItems}</b> films
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setCurrentPage(prev => Math.max(prev - 1, 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage <= 1}
+              style={{ height: '40px', padding: '0 14px' }}
+            >
+              <ChevronLeft size={16} />
+              <span>Previous</span>
+            </button>
+
+            <span style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '8px 14px',
+              fontSize: '13px',
+              fontWeight: '800',
+              color: '#ffffff'
+            }}>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage >= totalPages}
+              style={{ height: '40px', padding: '0 14px' }}
+            >
+              <span>Next</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       )}
     </div>
