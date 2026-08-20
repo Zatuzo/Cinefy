@@ -431,12 +431,12 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))',
                 gap: '20px'
               }}>
-                {section.films.map(film => {
+                {section.films.map((film, fIdx) => {
                   const dateLabel = formatCardDate(film.date || film.Watched_Date || film.Date);
 
                   return (
                     <MovieCard
-                      key={film.id || `${film.name}-${film.date}`}
+                      key={film.id || `${film.name || film.Name || film.title}-${film.date || film.Watched_Date || film.Date}-${fIdx}`}
                       movie={film}
                       onSelect={onSelectMovie}
                       badge={dateLabel}
@@ -475,7 +475,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
 
                 return (
                   <tr
-                    key={film.id || `${film.name}-${idx}`}
+                    key={film.id || `${film.name || film.Name || film.title}-${idx}`}
                     className="diary-table-row"
                     onClick={() => onSelectMovie && onSelectMovie(film)}
                   >
@@ -493,9 +493,9 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
                     <td>
                       <div style={{ width: '36px', height: '54px', borderRadius: '4px', overflow: 'hidden', background: '#0a0d14', border: '1px solid var(--border-subtle)' }}>
                         <PosterImage
-                          src={film.poster}
-                          name={film.name}
-                          year={film.year}
+                          src={film.poster || film.Poster || film.posterUrl}
+                          name={film.name || film.Name || film.title}
+                          year={film.year || film.Year}
                         />
                       </div>
                     </td>

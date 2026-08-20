@@ -6,21 +6,26 @@ import PosterImage from './PosterImage';
 export default function MovieCard({ movie, onSelect, badge = null, className = '' }) {
   if (!movie) return null;
 
-  const directorName = movie.director && movie.director !== 'Unknown Director' && movie.director !== 'Auteur'
-    ? movie.director.split(',')[0].trim()
+  const posterUrl = movie.poster || movie.Poster || movie.posterUrl || null;
+  const filmName = movie.name || movie.Name || movie.title || 'Film';
+  const filmYear = movie.year || movie.Year || 'N/A';
+  const filmDirector = movie.director || movie.Director;
+  const directorName = filmDirector && filmDirector !== 'Unknown Director' && filmDirector !== 'Auteur'
+    ? filmDirector.split(',')[0].trim()
     : null;
+  const ratingVal = movie.rating || movie.Rating;
 
   return (
     <div
       className={`media-card ${className}`}
       onClick={() => onSelect && onSelect(movie)}
-      title={`${movie.name || 'Film'} (${movie.year || 'N/A'})`}
+      title={`${filmName} (${filmYear})`}
     >
       <div className="poster-wrapper">
         <PosterImage
-          src={movie.poster}
-          name={movie.name}
-          year={movie.year}
+          src={posterUrl}
+          name={filmName}
+          year={filmYear}
           className="poster-img"
         />
 
@@ -48,18 +53,18 @@ export default function MovieCard({ movie, onSelect, badge = null, className = '
       </div>
 
       <div className="card-title">
-        {movie.name}
+        {filmName}
       </div>
 
       <div className="card-meta">
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: movie.rating ? '130px' : '100%' }}>
-          {movie.year || 'N/A'}{directorName ? ` • ${directorName}` : ''}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: ratingVal ? '130px' : '100%' }}>
+          {filmYear}{directorName ? ` • ${directorName}` : ''}
         </span>
 
-        {movie.rating && (
+        {ratingVal && (
           <div className="star-rating" style={{ flexShrink: 0 }}>
             <Star size={11} fill="currentColor" />
-            <span>{Number(movie.rating).toFixed(1)}</span>
+            <span>{Number(ratingVal).toFixed(1)}</span>
           </div>
         )}
       </div>
