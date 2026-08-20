@@ -164,72 +164,74 @@ export default function RewindView({ diary = [], onSelectMovie }) {
           </p>
         </div>
 
-        {/* Centered Month Stepper Navigator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            className="btn-secondary"
-            style={{ padding: '8px 12px' }}
-            onClick={handlePrevMonth}
-            disabled={currentIndex >= months.length - 1}
-            title="Previous Month"
-          >
-            <ChevronLeft size={16} />
-          </button>
-
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '0 14px',
-            height: '40px'
-          }}>
-            <Calendar size={16} style={{ color: 'var(--accent-ruby)', flexShrink: 0 }} />
-            <select
-              value={activeMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-primary)',
-                fontSize: '13px',
-                fontWeight: '800',
-                cursor: 'pointer',
-                padding: '4px 0',
-                margin: 0
-              }}
+        {/* Month Stepper Navigator & Share Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              className="btn-secondary"
+              style={{ width: '44px', height: '44px', padding: 0, justifyContent: 'center' }}
+              onClick={handlePrevMonth}
+              disabled={currentIndex >= months.length - 1}
+              title="Previous Month"
             >
-              {months.map(m => {
-                const count = diary.filter(f => getMonthYear(f) === m).length;
-                return (
-                  <option key={m} value={m} style={{ background: '#141a24', color: '#ffffff' }}>
-                    {formatMonthLabel(m)} ({count} {count === 1 ? 'film' : 'films'})
-                  </option>
-                );
-              })}
-            </select>
+              <ChevronLeft size={18} />
+            </button>
+
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0 14px',
+              height: '44px'
+            }}>
+              <Calendar size={16} style={{ color: 'var(--accent-ruby)', flexShrink: 0 }} />
+              <select
+                value={activeMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '13.5px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  padding: '4px 0',
+                  margin: 0
+                }}
+              >
+                {months.map(m => {
+                  const count = diary.filter(f => getMonthYear(f) === m).length;
+                  return (
+                    <option key={m} value={m} style={{ background: '#141a24', color: '#ffffff' }}>
+                      {formatMonthLabel(m)} ({count} {count === 1 ? 'film' : 'films'})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <button
+              className="btn-secondary"
+              style={{ width: '44px', height: '44px', padding: 0, justifyContent: 'center' }}
+              onClick={handleNextMonth}
+              disabled={currentIndex <= 0}
+              title="Next Month"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
 
           <button
-            className="btn-secondary"
-            style={{ padding: '8px 12px' }}
-            onClick={handleNextMonth}
-            disabled={currentIndex <= 0}
-            title="Next Month"
-          >
-            <ChevronRight size={16} />
-          </button>
-
-          <button
             className="btn-primary"
-            style={{ marginLeft: '8px', height: '40px', padding: '0 18px' }}
+            style={{ height: '44px', padding: '0 20px', fontSize: '13.5px' }}
             onClick={handleShareStory}
             disabled={isExporting || monthFilms.length === 0}
           >
-            <Share2 size={14} />
+            <Share2 size={15} />
             <span>{isExporting ? 'Generating...' : 'Share Story Card'}</span>
           </button>
         </div>

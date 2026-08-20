@@ -242,26 +242,6 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
             Complete chronological viewing log with multi-view table workstation and custom filters.
           </p>
         </div>
-
-        {/* View Switcher: Grid vs. Table */}
-        <div className="view-mode-toggle">
-          <button
-            className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => setViewMode('grid')}
-            title="Switch to Poster Grid View"
-          >
-            <LayoutGrid size={15} />
-            <span>Grid</span>
-          </button>
-          <button
-            className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
-            onClick={() => setViewMode('table')}
-            title="Switch to Tabular Letterboxd View"
-          >
-            <List size={15} />
-            <span>Table</span>
-          </button>
-        </div>
       </div>
 
       {/* 2. Quick-Stats Bar for Filtered Diary */}
@@ -309,20 +289,55 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
 
       {/* 3. Comprehensive Multi-Filter & Sort Toolbar */}
       <div className="diary-toolbar">
-        <div className="diary-toolbar-left">
-          {/* Search Input */}
+        {/* Top Row: Search + Reset + View Mode Toggle */}
+        <div className="diary-toolbar-top">
           <div className="diary-search-box">
-            <Search size={14} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
+            <Search size={16} style={{ position: 'absolute', left: '14px', top: '14px', color: 'var(--text-dim)' }} />
             <input
               type="text"
               placeholder="Search title, director, review..."
               className="form-input"
-              style={{ paddingLeft: '34px', height: '38px', fontSize: '13px' }}
+              style={{ paddingLeft: '40px', height: '44px', fontSize: '13.5px' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {hasActiveFilters && (
+              <button
+                onClick={handleResetFilters}
+                className="btn-ghost"
+                style={{ color: 'var(--accent-ruby)', fontSize: '13px', fontWeight: '800', gap: '6px', height: '44px', padding: '0 14px' }}
+              >
+                <RotateCcw size={14} />
+                <span>Reset</span>
+              </button>
+            )}
+
+            <div className="view-mode-toggle">
+              <button
+                className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Switch to Poster Grid View"
+              >
+                <LayoutGrid size={15} />
+                <span>Grid</span>
+              </button>
+              <button
+                className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Switch to Tabular Letterboxd View"
+              >
+                <List size={15} />
+                <span>Table</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row: 4-Column Responsive Filter Grid */}
+        <div className="diary-toolbar-bottom">
           {/* Month Dropdown */}
           <select
             className="diary-filter-select"
@@ -361,35 +376,18 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
             <option value="3.0+">3★ and Above</option>
           </select>
 
-          {/* Reset Filters Button */}
-          {hasActiveFilters && (
-            <button
-              onClick={handleResetFilters}
-              className="btn-ghost"
-              style={{ color: 'var(--accent-ruby)', fontSize: '12px', fontWeight: '800', gap: '4px' }}
-            >
-              <RotateCcw size={13} />
-              <span>Reset</span>
-            </button>
-          )}
-        </div>
-
-        {/* Sort Controls */}
-        <div className="diary-toolbar-right">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <SlidersHorizontal size={14} style={{ color: 'var(--text-muted)' }} />
-            <select
-              className="diary-filter-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="date-desc">Date (Newest first)</option>
-              <option value="date-asc">Date (Oldest first)</option>
-              <option value="rating-desc">Rating (Highest first)</option>
-              <option value="year-desc">Release Year (Newest)</option>
-              <option value="title-asc">Title (A → Z)</option>
-            </select>
-          </div>
+          {/* Sort Dropdown */}
+          <select
+            className="diary-filter-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="date-desc">Date (Newest first)</option>
+            <option value="date-asc">Date (Oldest first)</option>
+            <option value="rating-desc">Rating (Highest first)</option>
+            <option value="year-desc">Release Year (Newest)</option>
+            <option value="title-asc">Title (A → Z)</option>
+          </select>
         </div>
       </div>
 
