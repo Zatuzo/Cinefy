@@ -6,11 +6,13 @@ import { fetchMovieMetadataByName } from '../services/tmdb';
 export default function PosterImage({ src, name, year, className = "poster-img", style = {} }) {
   const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const imgRef = useRef(null);
 
   useEffect(() => {
     setImgSrc(src);
     setHasError(false);
+    setIsLoaded(false);
 
     // If no initial src, attempt fast metadata lookup
     if (!src && name) {
@@ -21,6 +23,13 @@ export default function PosterImage({ src, name, year, className = "poster-img",
       }).catch(() => {});
     }
   }, [src, name, year]);
+
+  // Check if image is already cached/completed in browser memory
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, [imgSrc]);
 
   if (!imgSrc || hasError) {
     return (
@@ -62,33 +71,39 @@ export default function PosterImage({ src, name, year, className = "poster-img",
   }
 
   return (
-    <img
-      ref={imgRef}
-      src={imgSrc}
-      alt={name || 'Movie Poster'}
-      className={className}
-      loading="lazy"
-      onError={() => {
-        // Fallback to fetch if the current URL failed
-        if (name && !hasError) {
-          fetchMovieMetadataByName(name, year).then(meta => {
-            if (meta && meta.poster && meta.poster !== imgSrc) {
-              setImgSrc(meta.poster);
-            } else {
-              setHasError(true);
-            }
-          }).catch(() => setHasError(true));
-        } else {
-          setHasError(true);
-        }
-      }}
-      style={{
-        display: 'block',
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        ...style
-      }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      {!isLoaded && <div className="poster-skeleton" />}
+      <img
+        ref={imgRef}
+        src={imgSrc}
+        alt={name || 'Movie Poster'}
+        className={className}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          // Fallback to fetch if the current URL failed
+          if (name && !hasError) {
+            fetchMovieMetadataByName(name, year).then(meta => {
+              if (meta && meta.poster && meta.poster !== imgSrc) {
+                setImgSrc(meta.poster);
+              } else {
+                setHasError(true);
+              }
+            }).catch(() => setHasError(true));
+          } else {
+            setHasError(true);
+          }
+        }}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.22s ease',
+          ...style
+        }}
+      />
+    </div>
   );
 }

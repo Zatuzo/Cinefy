@@ -50,6 +50,11 @@ export default function App() {
   const [quickLogFilm, setQuickLogFilm] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
+  // Scroll to top when switching tabs
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentTab]);
+
   // Save to localStorage whenever diary or watchlist updates
   useEffect(() => {
     try {

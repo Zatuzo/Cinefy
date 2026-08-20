@@ -23,23 +23,53 @@
   gap: 24px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 840px) {
   .cf-nav-container {
     padding: 0 16px;
     height: 64px;
   }
-}
 
-/* Left Cluster (Logo + Profile + Navigation Icons pinned together on the left) */
-.cf-nav-left-cluster {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-@media (max-width: 1024px) {
   .cf-pin-icons-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(9, 12, 18, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 500;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.75);
+  }
+
+  .cf-pin-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cf-pin-tooltip {
+    display: none !important;
+  }
+
+  .cf-main-wrapper {
+    padding-bottom: 80px;
+  }
+
+  .cf-search-wrapper {
+    width: 170px;
+  }
+
+  .cf-log-btn span {
     display: none;
+  }
+
+  .cf-log-btn {
+    padding: 0 14px;
   }
 }
 
