@@ -463,19 +463,12 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
 
               <div className="mix-card-desc">{mix.description}</div>
 
-              {/* 4 Poster Thumbnail Collage */}
-              <div className="mix-poster-strip">
+              {/* Fanned Poster Deck on Hover */}
+              <div className="mix-deck-container">
                 {mix.films.slice(0, 4).map((film, fIdx) => (
                   <div
                     key={film.id || fIdx}
-                    style={{
-                      width: '100%',
-                      aspectRatio: '2/3',
-                      borderRadius: '4px',
-                      overflow: 'hidden',
-                      background: '#0a0d14',
-                      border: '1px solid var(--border-subtle)'
-                    }}
+                    className={`deck-card deck-card-${fIdx}`}
                   >
                     <PosterImage
                       src={film.poster}

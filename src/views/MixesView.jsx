@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { buildCinemaMixes, populateMixDiscoveries } from '../services/mixEngine';
 import MovieCard from '../components/MovieCard';
-import { Disc3, Sparkles, Dices, Hash } from 'lucide-react';
+import PosterImage from '../components/PosterImage';
+import { Disc3, Sparkles, Dices, Hash, Check } from 'lucide-react';
 
 const MIX_GRADIENTS = [
   'linear-gradient(90deg, #FB3640, #ff5e66)',
@@ -64,54 +65,71 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
         </p>
       </div>
 
-      {/* 2. Big Mix Selector Pills Ribbon */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        overflowX: 'auto',
-        paddingBottom: '14px',
-        marginBottom: '32px'
-      }}>
-        {mixes.map((mix, idx) => {
-          const isSelected = currentMix?.id === mix.id;
-          return (
-            <button
-              key={mix.id}
-              onClick={() => setSelectedMixId(mix.id)}
-              style={{
-                background: isSelected ? 'rgba(251, 54, 64, 0.16)' : 'var(--bg-card)',
-                border: `1px solid ${isSelected ? 'var(--accent-ruby-border)' : 'var(--border-subtle)'}`,
-                color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                borderRadius: 'var(--radius-full)',
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: '800',
-                letterSpacing: '0.02em',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '10px',
-                whiteSpace: 'nowrap',
-                transition: 'all var(--transition-fast)',
-                boxShadow: isSelected ? '0 0 16px var(--accent-ruby-glow)' : 'none'
-              }}
-            >
-              <Disc3 size={17} style={{ color: isSelected ? 'var(--accent-ruby)' : 'var(--text-muted)' }} />
-              <span>{mix.title}</span>
-              <span style={{
-                background: isSelected ? 'rgba(251, 54, 64, 0.3)' : '#18202e',
-                color: isSelected ? '#ffffff' : 'var(--text-muted)',
-                fontSize: '11px',
-                fontWeight: '800',
-                padding: '2px 8px',
-                borderRadius: '10px'
-              }}>
-                {mix.films.length}
-              </span>
-            </button>
-          );
-        })}
+      {/* 2. Cinema Mixes Grid with Fanned Poster Deck Hover Effect */}
+      <div style={{ marginBottom: '36px' }}>
+        <div className="mix-grid">
+          {mixes.map((mix, idx) => {
+            const isSelected = currentMix?.id === mix.id;
+
+            return (
+              <div
+                key={mix.id}
+                className="mix-card"
+                onClick={() => setSelectedMixId(mix.id)}
+                style={{
+                  position: 'relative',
+                  borderColor: isSelected ? 'var(--accent-ruby-border)' : 'var(--border-subtle)',
+                  background: isSelected ? 'linear-gradient(135deg, rgba(251, 54, 64, 0.08) 0%, #131926 100%)' : 'var(--bg-card)',
+                  boxShadow: isSelected ? '0 0 20px var(--accent-ruby-glow)' : 'none'
+                }}
+              >
+                {/* Dynamic Gradient Top Accent Bar */}
+                <div
+                  className="mix-card-top-bar"
+                  style={{
+                    background: MIX_GRADIENTS[idx % MIX_GRADIENTS.length],
+                    width: '36px',
+                    height: '3.5px'
+                  }}
+                />
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                  <div className="mix-card-title" style={{ margin: 0, fontSize: '15px' }}>{mix.title}</div>
+                  <span style={{
+                    background: isSelected ? 'var(--accent-ruby)' : 'rgba(255, 255, 255, 0.06)',
+                    border: `1px solid ${isSelected ? 'var(--accent-ruby)' : 'var(--border-subtle)'}`,
+                    padding: '2px 7px',
+                    borderRadius: '10px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    color: isSelected ? '#ffffff' : 'var(--text-secondary)'
+                  }}>
+                    {mix.films.length}
+                  </span>
+                </div>
+
+                <div className="mix-card-desc">{mix.description}</div>
+
+                {/* Fanned Poster Deck on Hover */}
+                <div className="mix-deck-container">
+                  {mix.films.slice(0, 4).map((film, fIdx) => (
+                    <div
+                      key={film.id || fIdx}
+                      className={`deck-card deck-card-${fIdx}`}
+                    >
+                      <PosterImage
+                        src={film.poster}
+                        name={film.name}
+                        year={film.year}
+                        className="mix-thumb"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* 3. Active Mix Header & Poster Grid */}
@@ -143,83 +161,66 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
                 marginBottom: '4px'
               }}>
                 <Sparkles size={13} />
-                <span>CURATED CINEMA PLAYLIST</span>
+                <span>Selected Cinema Mix</span>
               </div>
-
-              <h2 style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.02em', marginBottom: '6px' }}>
                 {currentMix.title}
               </h2>
-
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '580px', lineHeight: '1.5' }}>
-                {currentMix.description || 'Unwatched film discoveries and watchlist gems carefully matched to your genre profile.'}
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13.5px', maxWidth: '640px', lineHeight: '1.5' }}>
+                {currentMix.description}
               </p>
 
               {/* Vibe Tags */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                {['#essential', '#curated', '#unwatched', `#${currentMix.title.toLowerCase().replace(' mix', '')}`].map(tag => (
+              <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
+                {currentMix.tags?.map((t, idx) => (
                   <span
-                    key={tag}
+                    key={idx}
                     style={{
                       background: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--border-subtle)',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
+                      padding: '3px 9px',
+                      borderRadius: 'var(--radius-xs)',
                       fontSize: '11px',
                       fontWeight: '700',
-                      color: 'var(--text-muted)'
+                      color: 'var(--text-secondary)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
                     }}
                   >
-                    {tag}
+                    <Hash size={10} style={{ color: 'var(--accent-ruby)' }} />
+                    {t}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button
-                className="btn-secondary"
-                onClick={handleShuffleCurrentMix}
-                title="Shuffle recommendations order"
-              >
-                <Dices size={15} />
-                <span>Shuffle Playlist</span>
-              </button>
-
-              <div style={{
-                background: 'rgba(251, 54, 64, 0.12)',
-                border: '1px solid var(--accent-ruby-border)',
-                color: '#ffffff',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '13px',
-                fontWeight: '800'
-              }}>
-                {currentMix.films.length} Gems
-              </div>
-            </div>
+            {/* Shuffle Action */}
+            <button
+              className="btn-secondary"
+              onClick={handleShuffleCurrentMix}
+              style={{ height: '42px', padding: '0 18px', gap: '8px' }}
+            >
+              <Dices size={16} />
+              <span>Shuffle Playlist</span>
+            </button>
           </div>
 
-          {/* 4. Full-Bleed Movie Poster Cards Grid */}
-          {currentMix.films.length === 0 ? (
-            <div className="empty-state-card" style={{ padding: '48px 20px' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading recommendations...</p>
-            </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(185px, 1fr))',
-              gap: '20px'
-            }}>
-              {currentMix.films.map((film, idx) => (
-                <MovieCard
-                  key={film.id || `${film.name}-${idx}`}
-                  movie={film}
-                  onSelect={onSelectMovie}
-                />
-              ))}
-            </div>
-          )}
+          {/* Active Mix Movie Cards Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '18px'
+          }}>
+            {currentMix.films.map((film, fIdx) => (
+              <MovieCard
+                key={film.id || `${film.name}-${fIdx}`}
+                movie={film}
+                onSelect={onSelectMovie}
+                badge={film.source === 'tmdb_discovery' ? '✨ New Gem' : null}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
