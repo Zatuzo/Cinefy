@@ -1,9 +1,9 @@
 // src/views/HomeView.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import MovieCard from '../components/MovieCard';
 import PosterImage from '../components/PosterImage';
 import { buildCinemaMixes, populateMixDiscoveries } from '../services/mixEngine';
-import { ChevronRight, Sparkles, Dices, Plus } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, Dices, Plus, Bookmark, Compass, TrendingUp, Star, Film } from 'lucide-react';
 
 // Deterministic daily index based on date string (YYYY-MM-DD)
 function getDailyIndex(length) {
@@ -17,7 +17,78 @@ function getDailyIndex(length) {
   return Math.abs(hash) % length;
 }
 
-export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix, onNavigate }) {
+// 1. Reusable Scrollable Media Rail with Floating Arrow Navigation
+function ScrollableRail({ children }) {
+  const railRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollability = () => {
+    if (!railRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = railRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    const el = railRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollability, { passive: true });
+      window.addEventListener('resize', checkScrollability);
+    }
+    return () => {
+      if (el) el.removeEventListener('scroll', checkScrollability);
+      window.removeEventListener('resize', checkScrollability);
+    };
+  }, [children]);
+
+  const handleScroll = (direction) => {
+    if (!railRef.current) return;
+    const distance = 580;
+    railRef.current.scrollBy({
+      left: direction === 'left' ? -distance : distance,
+      behavior: 'smooth'
+    });
+  };
+
+  return (
+    <div className="rail-wrapper">
+      {canScrollLeft && (
+        <button
+          className="rail-arrow-btn left"
+          onClick={() => handleScroll('left')}
+          aria-label="Scroll left"
+        >
+          <ChevronLeft size={22} />
+        </button>
+      )}
+
+      <div className="media-rail" ref={railRef}>
+        {children}
+      </div>
+
+      {canScrollRight && (
+        <button
+          className="rail-arrow-btn right"
+          onClick={() => handleScroll('right')}
+          aria-label="Scroll right"
+        >
+          <ChevronRight size={22} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+const MIX_TOP_GRADIENTS = [
+  'linear-gradient(90deg, #FB3640, #ff5e66)',
+  'linear-gradient(90deg, #06b6d4, #3b82f6)',
+  'linear-gradient(90deg, #fbbf24, #f59e0b)',
+  'linear-gradient(90deg, #a855f7, #ec4899)'
+];
+
+export default function HomeView({ diary = [], watchlist = [], onSelectMovie, onSelectMix, onNavigate }) {
   const [mixes, setMixes] = useState(() => buildCinemaMixes(diary, watchlist, 4));
 
   // Daily Watchlist Spotlight State
@@ -64,10 +135,53 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
     return (watchlist || []).slice(0, 8);
   }, [watchlist]);
 
+  // 2. Taste Intelligence Micro-Ribbon Calculations
+  const monthlyMetrics = useMemo(() => {
+    if (diary.length === 0) return null;
+
+    // Find the active month from the latest diary entry or today
+    let latestDate = diary[0]?.date || diary[0]?.Watched_Date || new Date().toISOString();
+    const activeMonthYear = latestDate.slice(0, 7); // e.g. "2026-08"
+    const [year, month] = activeMonthYear.split('-');
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const activeMonthName = monthNames[parseInt(month, 10) - 1] || 'This Month';
+
+    const thisMonthFilms = diary.filter(f => {
+      const d = f.date || f.Watched_Date || f.Date || '';
+      return d.startsWith(activeMonthYear);
+    });
+
+    const velocity = thisMonthFilms.length;
+    const rated = thisMonthFilms.filter(f => f.rating || f.Rating);
+    const avgRating = rated.length > 0
+      ? (rated.reduce((acc, f) => acc + Number(f.rating || f.Rating), 0) / rated.length).toFixed(1)
+      : null;
+
+    // Top genre this month
+    const genreCounts = {};
+    thisMonthFilms.forEach(f => {
+      const g = f.genre || f.Genre;
+      if (g) {
+        g.split(',').map(s => s.trim()).filter(s => s && s !== 'Cinema').forEach(genre => {
+          genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+        });
+      }
+    });
+    const sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]);
+    const topGenre = sortedGenres.slice(0, 2).join(' & ') || 'Drama & Cinema';
+
+    return {
+      monthName: activeMonthName,
+      velocity,
+      avgRating,
+      topGenre
+    };
+  }, [diary]);
+
   return (
     <div>
-      {/* 1. Daily Watchlist Spotlight Hero Section (Polished Readability & Depth) */}
-      {dailyFilm && (() => {
+      {/* 1. Daily Watchlist Spotlight Hero Section */}
+      {dailyFilm ? (() => {
         const rawGenre = dailyFilm.genre || dailyFilm.Genre || '';
         const genreList = rawGenre
           ? rawGenre.split(',').map(g => g.trim()).filter(g => g && g !== 'Cinema')
@@ -80,7 +194,7 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-lg)',
             padding: '24px',
-            marginBottom: '44px',
+            marginBottom: '28px',
             display: 'flex',
             gap: '28px',
             alignItems: 'stretch',
@@ -203,7 +317,7 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
                   )}
                 </div>
 
-                {/* High Contrast Synopsis with Ergonomic Line Length */}
+                {/* High Contrast Synopsis */}
                 {dailyFilm.overview && (
                   <p style={{
                     fontSize: '13.5px',
@@ -243,9 +357,57 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
             </div>
           </div>
         );
-      })()}
+      })() : (
+        /* Zero-State for Empty Watchlist */
+        <div className="empty-state-card" style={{ marginBottom: '28px' }}>
+          <Bookmark size={32} style={{ color: 'var(--accent-cyan)' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff' }}>Your Watchlist is empty</h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: '1.5' }}>
+            Queue films from your backlog or use our AI Vibe Search to discover your next favorite cinema screening.
+          </p>
+          <button className="btn-primary" onClick={() => onNavigate('semantic')} style={{ marginTop: '8px' }}>
+            <Compass size={15} />
+            <span>Explore Vibe Search</span>
+          </button>
+        </div>
+      )}
 
-      {/* 2. Recently Logged Film Rail */}
+      {/* 2. Taste Intelligence Micro-Ribbon */}
+      {monthlyMetrics && (
+        <div className="taste-ribbon">
+          <div className="taste-ribbon-tile">
+            <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-ruby-subtle)', color: 'var(--accent-ruby)' }}>
+              <TrendingUp size={20} />
+            </div>
+            <div className="taste-ribbon-info">
+              <div className="taste-ribbon-label">Monthly Pace</div>
+              <div className="taste-ribbon-val">{monthlyMetrics.velocity} films in {monthlyMetrics.monthName}</div>
+            </div>
+          </div>
+
+          <div className="taste-ribbon-tile">
+            <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)' }}>
+              <Star size={20} fill="currentColor" />
+            </div>
+            <div className="taste-ribbon-info">
+              <div className="taste-ribbon-label">{monthlyMetrics.monthName} Average</div>
+              <div className="taste-ribbon-val">{monthlyMetrics.avgRating ? `★ ${monthlyMetrics.avgRating} Rating` : 'Unrated'}</div>
+            </div>
+          </div>
+
+          <div className="taste-ribbon-tile">
+            <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-cyan-subtle)', color: 'var(--accent-cyan)' }}>
+              <Film size={20} />
+            </div>
+            <div className="taste-ribbon-info">
+              <div className="taste-ribbon-label">Top Genre Focus</div>
+              <div className="taste-ribbon-val">{monthlyMetrics.topGenre}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Recently Logged Film Rail with Scroll Arrows */}
       <div className="section-container">
         <div className="section-header">
           <div>
@@ -261,18 +423,18 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
           </button>
         </div>
 
-        <div className="media-rail">
+        <ScrollableRail>
           {recentFilms.map(film => (
             <MovieCard
-              key={film.id}
+              key={film.id || film.name}
               movie={film}
               onSelect={onSelectMovie}
             />
           ))}
-        </div>
+        </ScrollableRail>
       </div>
 
-      {/* 3. Cinema Mixes Rail */}
+      {/* 4. Cinema Mixes Rail with Upgraded Gradient Header Cards */}
       <div className="section-container">
         <div className="section-header">
           <div>
@@ -289,20 +451,54 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
         </div>
 
         <div className="mix-grid">
-          {mixes.map(mix => (
+          {mixes.map((mix, idx) => (
             <div
               key={mix.id}
               className="mix-card"
               onClick={() => onSelectMix(mix)}
+              style={{ position: 'relative' }}
             >
-              <div className="mix-card-top-bar" />
-              <div className="mix-card-title">{mix.title}</div>
+              {/* Dynamic Gradient Top Accent Bar */}
+              <div
+                className="mix-card-top-bar"
+                style={{
+                  background: MIX_TOP_GRADIENTS[idx % MIX_TOP_GRADIENTS.length],
+                  width: '36px',
+                  height: '3.5px'
+                }}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                <div className="mix-card-title" style={{ margin: 0 }}>{mix.title}</div>
+                <span style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  color: 'var(--text-secondary)'
+                }}>
+                  {mix.films.length}
+                </span>
+              </div>
+
               <div className="mix-card-desc">{mix.description}</div>
 
-              {/* 4 Poster Thumbnail Strip */}
+              {/* 4 Poster Thumbnail Collage */}
               <div className="mix-poster-strip">
-                {mix.films.slice(0, 4).map((film, idx) => (
-                  <div key={film.id || idx} style={{ width: '100%', aspectRatio: '2/3' }}>
+                {mix.films.slice(0, 4).map((film, fIdx) => (
+                  <div
+                    key={film.id || fIdx}
+                    style={{
+                      width: '100%',
+                      aspectRatio: '2/3',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      background: '#0a0d14',
+                      border: '1px solid var(--border-subtle)'
+                    }}
+                  >
                     <PosterImage
                       src={film.poster}
                       name={film.name}
@@ -317,7 +513,7 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
         </div>
       </div>
 
-      {/* 4. Watchlist Queue */}
+      {/* 5. Watchlist Queue with Scroll Arrows */}
       {watchlistQueue.length > 0 && (
         <div className="section-container">
           <div className="section-header">
@@ -334,19 +530,19 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
             </button>
           </div>
 
-          <div className="media-rail">
+          <ScrollableRail>
             {watchlistQueue.map(film => (
               <MovieCard
-                key={film.id}
+                key={film.id || film.name}
                 movie={film}
                 onSelect={onSelectMovie}
               />
             ))}
-          </div>
+          </ScrollableRail>
         </div>
       )}
 
-      {/* 5. 5-Star Masterpieces */}
+      {/* 6. 5-Star Masterpieces with Scroll Arrows */}
       {topRatedFilms.length > 0 && (
         <div className="section-container">
           <div className="section-header">
@@ -363,15 +559,15 @@ export default function HomeView({ diary, watchlist, onSelectMovie, onSelectMix,
             </button>
           </div>
 
-          <div className="media-rail">
+          <ScrollableRail>
             {topRatedFilms.map(film => (
               <MovieCard
-                key={film.id}
+                key={film.id || film.name}
                 movie={film}
                 onSelect={onSelectMovie}
               />
             ))}
-          </div>
+          </ScrollableRail>
         </div>
       )}
     </div>
