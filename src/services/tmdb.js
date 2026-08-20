@@ -106,6 +106,7 @@ export async function fetchMovieMetadataByName(name, year) {
     const director = directors.length > 0 ? directors.join(', ') : '';
     const genres = (detailData.genres || []).map(g => g.name).join(', ') || 'Cinema';
     const poster = detailData.poster_path ? `${TMDB_IMAGE_BASE}${detailData.poster_path}` : (firstMatch.poster_path ? `${TMDB_IMAGE_BASE}${firstMatch.poster_path}` : null);
+    const backdrop = detailData.backdrop_path ? `${TMDB_IMAGE_BASE}${detailData.backdrop_path}` : (firstMatch.backdrop_path ? `${TMDB_IMAGE_BASE}${firstMatch.backdrop_path}` : null);
     const runtime = detailData.runtime || 110;
 
     const result = {
@@ -113,6 +114,7 @@ export async function fetchMovieMetadataByName(name, year) {
       genre: genres,
       overview: detailData.overview || firstMatch.overview || '',
       poster,
+      backdrop,
       runtime
     };
 
@@ -120,7 +122,7 @@ export async function fetchMovieMetadataByName(name, year) {
     setCache(cache);
     return result;
   } catch {
-    return { director: '', genre: 'Cinema', overview: '', poster: null, runtime: 110 };
+    return { director: '', genre: 'Cinema', overview: '', poster: null, backdrop: null, runtime: 110 };
   }
 }
 

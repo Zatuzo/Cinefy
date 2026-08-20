@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import MovieCard from '../components/MovieCard';
 import PosterImage from '../components/PosterImage';
 import { buildCinemaMixes, populateMixDiscoveries } from '../services/mixEngine';
+import { fetchMovieMetadataByName } from '../services/tmdb';
 import { ChevronRight, ChevronLeft, Sparkles, Dices, Plus, Bookmark, Compass, TrendingUp, Star, Film } from 'lucide-react';
 
 // Deterministic daily index based on date string (YYYY-MM-DD)
@@ -32,22 +33,24 @@ function ScrollableRail({ children }) {
 
   useEffect(() => {
     checkScrollability();
-    const el = railRef.current;
-    if (el) {
-      el.addEventListener('scroll', checkScrollability, { passive: true });
+    const currentRail = railRef.current;
+    if (currentRail) {
+      currentRail.addEventListener('scroll', checkScrollability);
       window.addEventListener('resize', checkScrollability);
     }
     return () => {
-      if (el) el.removeEventListener('scroll', checkScrollability);
+      if (currentRail) {
+        currentRail.removeEventListener('scroll', checkScrollability);
+      }
       window.removeEventListener('resize', checkScrollability);
     };
   }, [children]);
 
   const handleScroll = (direction) => {
     if (!railRef.current) return;
-    const distance = 580;
+    const scrollAmount = 600; // Scroll ~3-4 cards
     railRef.current.scrollBy({
-      left: direction === 'left' ? -distance : distance,
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth'
     });
   };
@@ -58,9 +61,9 @@ function ScrollableRail({ children }) {
         <button
           className="rail-arrow-btn left"
           onClick={() => handleScroll('left')}
-          aria-label="Scroll left"
+          aria-label="Scroll Left"
         >
-          <ChevronLeft size={22} />
+          <ChevronLeft size={20} />
         </button>
       )}
 
@@ -72,9 +75,9 @@ function ScrollableRail({ children }) {
         <button
           className="rail-arrow-btn right"
           onClick={() => handleScroll('right')}
-          aria-label="Scroll right"
+          aria-label="Scroll Right"
         >
-          <ChevronRight size={22} />
+          <ChevronRight size={20} />
         </button>
       )}
     </div>
@@ -96,6 +99,25 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
   const [dailyIndex, setDailyIndex] = useState(initialIndex);
 
   const dailyFilm = watchlist[dailyIndex] || watchlist[0] || null;
+  const [dailyBackdrop, setDailyBackdrop] = useState(dailyFilm?.backdrop || dailyFilm?.backdropUrl || null);
+
+  // Fetch High-Res Backdrop / Movie Still for Spotlight Film
+  useEffect(() => {
+    if (!dailyFilm) return;
+    if (dailyFilm.backdrop || dailyFilm.backdropUrl) {
+      setDailyBackdrop(dailyFilm.backdrop || dailyFilm.backdropUrl);
+      return;
+    }
+    const name = dailyFilm.name || dailyFilm.Name || dailyFilm.title;
+    const year = dailyFilm.year || dailyFilm.Year;
+    if (name) {
+      fetchMovieMetadataByName(name, year).then(meta => {
+        if (meta?.backdrop) {
+          setDailyBackdrop(meta.backdrop);
+        }
+      });
+    }
+  }, [dailyFilm]);
 
   const handleShuffleDaily = () => {
     if (watchlist.length <= 1) return;
@@ -190,6 +212,19 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
 
         return (
           <div className="spotlight-card">
+            {/* Absolute Blurred Movie Backdrop / Still */}
+            {dailyBackdrop && (
+              <img
+                src={dailyBackdrop}
+                alt=""
+                aria-hidden="true"
+                className="spotlight-backdrop-bg"
+              />
+            )}
+
+            {/* Dark Gradient Overlay Fading from Left (Dark) to Right (Transparent) */}
+            <div className="spotlight-gradient-overlay" />
+
             {/* Large Movie Poster with Depth & Hover Elevation */}
             <div
               className="spotlight-poster-wrap"

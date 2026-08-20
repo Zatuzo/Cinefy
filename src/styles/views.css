@@ -19,18 +19,51 @@
    1. DAILY WATCHLIST SPOTLIGHT HERO CARD
    ========================================================= */
 .spotlight-card {
-  background: linear-gradient(135deg, rgba(251, 54, 64, 0.08) 0%, #101520 60%);
+  position: relative;
+  background: #0e131d;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 28px;
+  padding: 28px;
+  margin-bottom: 32px;
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: stretch;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+}
+
+.spotlight-backdrop-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: blur(14px);
+  transform: scale(1.12);
+  opacity: 0.42;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+
+.spotlight-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg, 
+    rgba(14, 19, 29, 0.97) 0%, 
+    rgba(14, 19, 29, 0.90) 42%, 
+    rgba(14, 19, 29, 0.50) 78%,
+    rgba(14, 19, 29, 0.20) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
 }
 
 .spotlight-poster-wrap {
+  position: relative;
+  z-index: 3;
   width: 150px;
   flex-shrink: 0;
   aspect-ratio: 2 / 3;
@@ -43,6 +76,8 @@
 }
 
 .spotlight-content {
+  position: relative;
+  z-index: 3;
   flex: 1;
   min-width: 0;
   display: flex;
