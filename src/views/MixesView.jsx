@@ -60,7 +60,7 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.02em' }}>Cinema Mixes</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
-          Curated unwatched playlists tailored dynamically to your cinematic taste and genres.
+          Curated discovery playlists.
         </p>
       </div>
 

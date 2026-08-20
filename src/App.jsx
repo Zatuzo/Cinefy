@@ -1,7 +1,6 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
 import CinefyNavbar from './components/CinefyNavbar';
-import CinefyHeroBanner from './components/CinefyHeroBanner';
 import QuickLogModal from './components/QuickLogModal';
 import UploadModal from './components/UploadModal';
 

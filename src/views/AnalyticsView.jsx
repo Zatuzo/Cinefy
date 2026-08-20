@@ -279,7 +279,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '-0.02em' }}>Taste Analytics</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
-            Interactive cinema intelligence. Click any bar, point, or card to inspect the matching films.
+            Viewing habits and cinema intelligence.
           </p>
         </div>
 

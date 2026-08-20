@@ -160,7 +160,7 @@ export default function RewindView({ diary = [], onSelectMovie }) {
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '-0.02em' }}>Monthly Rewind</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '3px' }}>
-            Spotify Wrapped-style retrospective recap for <b style={{ color: '#ffffff' }}>{formatMonthLabel(activeMonth)}</b>.
+            Viewing recap for <b style={{ color: '#ffffff' }}>{formatMonthLabel(activeMonth)}</b>.
           </p>
         </div>
 

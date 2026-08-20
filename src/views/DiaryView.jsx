@@ -252,7 +252,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.02em' }}>Film Diary</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '3px' }}>
-            Complete chronological viewing log with multi-view workstation and instant search.
+            Chronological viewing log.
           </p>
         </div>
       </div>

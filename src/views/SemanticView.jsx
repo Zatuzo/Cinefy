@@ -26,7 +26,7 @@ export default function SemanticView({ watchlist = [], onSelectMovie }) {
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.02em' }}>Vibe Search</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '3px' }}>
-          Explore your unwatched watchlist using atmospheric descriptors, mood aesthetics, and cinematic themes.
+          Search your watchlist by mood, theme, or aesthetic.
         </p>
       </div>
 

@@ -1,55 +1,66 @@
 /* src/styles/variables.css - Cinefy Design System Tokens & Base Reset (WCAG 2.1 AA Compliant) */
 
 :root {
-  /* Surfaces & Canvas (Cinematic Obsidian & Deep Slate) */
+  /* Spacing System (Strict 8-Point Grid with 4pt micro-steps) */
+  --space-1: 4px;    /* Micro gaps & pill margins */
+  --space-2: 8px;    /* Tight icon gaps, badge padding */
+  --space-3: 12px;   /* Standard input padding, card inner gaps */
+  --space-4: 16px;   /* Standard card padding, button padding */
+  --space-5: 20px;   /* Section headers, grid gaps */
+  --space-6: 24px;   /* Card margins, modal padding */
+  --space-8: 32px;   /* Major section spacing */
+  --space-10: 40px;  /* Hero block margins */
+  --space-12: 48px;  /* View headers */
+  --space-16: 64px;  /* Page layout top/bottom */
+
+  /* Surfaces & Canvas (Cinematic Obsidian Palette) */
   --bg-canvas: #090c12;
   --bg-surface: #0e131d;
   --bg-card: #131926;
   --bg-card-hover: #192132;
   --bg-card-active: #202b3f;
-  --bg-overlay: rgba(9, 12, 18, 0.88);
+  --bg-overlay: rgba(5, 7, 10, 0.84);
 
-  /* Primary Brand Accents (Signature Imperial Red) */
+  /* Primary Brand Accent (Imperial Ruby) */
   --accent-ruby: #FB3640;
-  --accent-ruby-hover: #e02630;
+  --accent-ruby-hover: #ff525b;
   --accent-ruby-glow: rgba(251, 54, 64, 0.28);
   --accent-ruby-subtle: rgba(251, 54, 64, 0.12);
   --accent-ruby-border: rgba(251, 54, 64, 0.35);
 
-  /* Secondary Accents */
-  --accent-coral: #ff5e66;
-  --accent-gold: #fbbf24;
-  --accent-gold-subtle: rgba(251, 191, 36, 0.12);
+  /* Secondary Functional Accents */
+  --accent-gold: #f59e0b;
+  --accent-gold-subtle: rgba(245, 158, 11, 0.12);
   --accent-cyan: #06b6d4;
   --accent-cyan-subtle: rgba(6, 182, 212, 0.12);
-  --accent-emerald: #10b981;
 
-  /* Typography Colors (High Contrast - WCAG 2.1 AA Compliant) */
+  /* Typography Colors (WCAG 2.1 AA Compliant) */
   --text-primary: #ffffff;          /* 100% white for titles and primary labels */
   --text-secondary: #cbd5e1;        /* High contrast silver-slate for subtitles & metadata */
   --text-muted: #8493a8;            /* Legible muted gray for secondary body/dates */
-  --text-dim: #505e73;              /* Strictly for icons, inactive states, and subtle dividers */
+  --text-dim: #475569;              /* Strictly for icons, inactive states, and subtle dividers */
 
   /* Borders & Dividers */
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.16);
-  --border-focus: rgba(251, 54, 64, 0.5);
+  --border-focus: #FB3640;
 
-  /* Elevation Shadows */
+  /* Restrained Elevation Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 24px var(--accent-ruby-glow);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 0 20px var(--accent-ruby-glow);
 
-  /* Radius & Transitions */
+  /* Standardized Radiuses (Strict 3-Tier System) */
   --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-full: 9999px;
 
+  /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
