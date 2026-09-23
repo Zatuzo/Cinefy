@@ -9,38 +9,43 @@ export function searchWatchlistByVibe(watchlist = [], query = '') {
   if (queryTerms.length === 0) return [];
 
   // Compute term frequencies and score
-  const scored = watchlist.map(movie => {
-    const docText = `${movie.name} ${movie.genre || ''} ${movie.overview || ''} ${movie.director || ''}`;
-    const docTerms = tokenize(docText);
-    const docTermMap = {};
+  const scored = watchlist
+    .map(movie => {
+      const title = movie.name || movie.title || movie.Name || '';
+      const docText = `${title} ${movie.genre || movie.Genre || ''} ${movie.overview || movie.Overview || ''} ${movie.director || movie.Director || ''}`;
+      const docTerms = tokenize(docText);
+      const docTermMap = {};
 
-    docTerms.forEach(t => {
-      docTermMap[t] = (docTermMap[t] || 0) + 1;
-    });
+      docTerms.forEach(t => {
+        docTermMap[t] = (docTermMap[t] || 0) + 1;
+      });
 
-    let matchCount = 0;
-    queryTerms.forEach(qt => {
-      if (docTermMap[qt]) {
-        matchCount += docTermMap[qt] * 2; // boost direct hits
-      } else {
-        // partial substring match
-        for (const dt of Object.keys(docTermMap)) {
-          if (dt.includes(qt) || qt.includes(dt)) {
-            matchCount += 0.8;
-            break;
+      let matchCount = 0;
+      queryTerms.forEach(qt => {
+        if (docTermMap[qt]) {
+          matchCount += docTermMap[qt] * 2; // boost direct hits
+        } else {
+          // partial substring match
+          for (const dt of Object.keys(docTermMap)) {
+            if (dt.includes(qt) || qt.includes(dt)) {
+              matchCount += 0.8;
+              break;
+            }
           }
         }
-      }
-    });
+      });
 
-    // Score normalized to 0 - 100%
-    const score = Math.min(99.5, Math.round((matchCount / Math.max(1, queryTerms.length)) * 42 + 25));
+      if (matchCount === 0) return null;
 
-    return {
-      ...movie,
-      matchScore: matchCount > 0 ? score : Math.round(Math.random() * 20 + 10)
-    };
-  });
+      // Score normalized to 0 - 100%
+      const score = Math.min(99.5, Math.round((matchCount / Math.max(1, queryTerms.length)) * 42 + 25));
+
+      return {
+        ...movie,
+        matchScore: score
+      };
+    })
+    .filter(Boolean);
 
   return scored.sort((a, b) => b.matchScore - a.matchScore);
 }

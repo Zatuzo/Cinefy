@@ -81,7 +81,10 @@ def load_letterboxd_bundle(uploaded_files=None):
     base_df['Year'] = pd.to_numeric(base_df['Year'], errors='coerce')
     base_df['Decade'] = (base_df['Year'] // 10 * 10).dropna().astype(int).astype(str) + 's'
     base_df['Rating'] = pd.to_numeric(base_df['Rating'], errors='coerce')
-    base_df = base_df.drop_duplicates(subset=['Name', 'Year']).reset_index(drop=True)
+    
+    # Deduplicate while preserving multiple screenings/rewatches on distinct dates
+    dedup_cols = ['Name', 'Year', 'Date'] if 'Date' in base_df.columns and not base_df['Date'].dropna().empty else ['Name', 'Year']
+    base_df = base_df.drop_duplicates(subset=dedup_cols).reset_index(drop=True)
 
     # Feature Engineering for Habits
     base_df['Day_of_Week'] = base_df['Date'].dt.day_name()

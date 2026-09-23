@@ -54,6 +54,7 @@ export function buildCinemaMixes(diary = [], watchlist = [], numMixes = 6) {
       genre,
       vibeLabel,
       description: `Unwatched ${genre.toLowerCase()} discoveries and watchlist recommendations tailored to your taste profile.`,
+      tags: [genre, vibeLabel],
       films: fromWatchlist
     };
   });
@@ -62,18 +63,18 @@ export function buildCinemaMixes(diary = [], watchlist = [], numMixes = 6) {
 }
 
 export async function populateMixDiscoveries(mixes = [], diary = []) {
-  const watchedTitles = new Set((diary || []).map(f => (f.name || '').toLowerCase().trim()));
+  const watchedTitles = new Set((diary || []).map(f => (f.name || f.title || f.Name || '').toLowerCase().trim()));
 
   const populated = await Promise.all(
     mixes.map(async mix => {
       // If mix already has enough watchlist films, keep them; otherwise fetch discoveries
       const existing = [...mix.films];
-      const existingTitles = new Set(existing.map(f => f.name.toLowerCase().trim()));
+      const existingTitles = new Set(existing.map(f => (f.name || f.title || f.Name || '').toLowerCase().trim()));
 
       try {
         const discoveries = await fetchDiscoverByGenre(mix.genre);
         const unwatchedDiscoveries = discoveries.filter(d => {
-          const title = (d.name || '').toLowerCase().trim();
+          const title = (d.name || d.title || d.Name || '').toLowerCase().trim();
           return !watchedTitles.has(title) && !existingTitles.has(title);
         });
 

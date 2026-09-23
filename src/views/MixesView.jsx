@@ -159,7 +159,7 @@ export default function MixesView({ diary, watchlist, onSelectMovie, activeMix: 
 
               {/* Vibe Tags */}
               <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
-                {currentMix.tags?.map((t, idx) => (
+                {(currentMix.tags || [currentMix.genre, currentMix.vibeLabel]).filter(Boolean).map((t, idx) => (
                   <span
                     key={idx}
                     style={{

@@ -148,7 +148,8 @@ def run_fast_migration(export_dir):
 
     base['Review'] = base['Review'].fillna('') if 'Review' in base.columns else ''
     base['Year'] = pd.to_numeric(base['Year'], errors='coerce')
-    base = base.drop_duplicates(subset=['Name', 'Year']).reset_index(drop=True)
+    dedup_cols = ['Name', 'Year', 'Date'] if 'Date' in base.columns and not base['Date'].dropna().empty else ['Name', 'Year']
+    base = base.drop_duplicates(subset=dedup_cols).reset_index(drop=True)
 
     print(f"🎬 Ingesting {len(base)} movies concurrently...")
 

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import MovieCard from '../components/MovieCard';
 import PosterImage from '../components/PosterImage';
-import { buildCinemaMixes, populateMixDiscoveries } from '../services/mixEngine';
 import { fetchMovieMetadataByName } from '../services/tmdb';
 import { ChevronRight, ChevronLeft, Sparkles, Dices, Plus, Bookmark, Compass, TrendingUp, Star, Film } from 'lucide-react';
 
@@ -84,38 +83,34 @@ function ScrollableRail({ children }) {
   );
 }
 
-const MIX_TOP_GRADIENTS = [
-  'linear-gradient(90deg, #FB3640, #ff5e66)',
-  'linear-gradient(90deg, #06b6d4, #3b82f6)',
-  'linear-gradient(90deg, #fbbf24, #f59e0b)',
-  'linear-gradient(90deg, #a855f7, #ec4899)'
-];
-
-export default function HomeView({ diary = [], watchlist = [], onSelectMovie, onSelectMix, onNavigate }) {
-  const [mixes, setMixes] = useState(() => buildCinemaMixes(diary, watchlist, 4));
-
+export default function HomeView({ diary = [], watchlist = [], onSelectMovie, onNavigate }) {
   // Daily Watchlist Spotlight State
   const initialIndex = useMemo(() => getDailyIndex(watchlist.length), [watchlist.length]);
   const [dailyIndex, setDailyIndex] = useState(initialIndex);
 
   const dailyFilm = watchlist[dailyIndex] || watchlist[0] || null;
   const [dailyBackdrop, setDailyBackdrop] = useState(dailyFilm?.backdrop || dailyFilm?.backdropUrl || null);
+  const [spotlightMeta, setSpotlightMeta] = useState(null);
 
-  // Fetch High-Res Backdrop / Movie Still for Spotlight Film
+  // Fetch Full TMDb Metadata (Synopsis, Director, Genres, Poster, Backdrop) for Spotlight Film
   useEffect(() => {
-    if (!dailyFilm) return;
-    if (dailyFilm.backdrop || dailyFilm.backdropUrl) {
-      setDailyBackdrop(dailyFilm.backdrop || dailyFilm.backdropUrl);
+    if (!dailyFilm) {
+      setSpotlightMeta(null);
       return;
     }
     const name = dailyFilm.name || dailyFilm.Name || dailyFilm.title;
     const year = dailyFilm.year || dailyFilm.Year;
     if (name) {
+      let isMounted = true;
       fetchMovieMetadataByName(name, year).then(meta => {
-        if (meta?.backdrop) {
-          setDailyBackdrop(meta.backdrop);
+        if (isMounted && meta) {
+          setSpotlightMeta(meta);
+          if (meta.backdrop) {
+            setDailyBackdrop(meta.backdrop);
+          }
         }
-      });
+      }).catch(() => {});
+      return () => { isMounted = false; };
     }
   }, [dailyFilm]);
 
@@ -128,72 +123,123 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
     setDailyIndex(nextIdx);
   };
 
-  useEffect(() => {
-    const base = buildCinemaMixes(diary, watchlist, 4);
-    setMixes(base);
-    populateMixDiscoveries(base, diary).then(enriched => {
-      setMixes(enriched);
-    });
-  }, [diary, watchlist]);
-
-  // Recent logs - Preview of top 8 films (sorted descending by date)
+  // Recent logs - Preview of top 8 unique films (sorted descending by date)
   const recentFilms = useMemo(() => {
-    return [...diary]
-      .sort((a, b) => {
-        const dateA = new Date(a.date || a.Watched_Date || a.Date || 0);
-        const dateB = new Date(b.date || b.Watched_Date || b.Date || 0);
-        return dateB - dateA;
-      })
-      .slice(0, 8);
+    const sorted = [...diary].sort((a, b) => {
+      const dateA = new Date(a.date || a.Watched_Date || a.Date || 0);
+      const dateB = new Date(b.date || b.Watched_Date || b.Date || 0);
+      return dateB - dateA;
+    });
+
+    const seen = new Set();
+    const unique = [];
+    for (const film of sorted) {
+      const title = (film.name || film.title || film.Name || '').toLowerCase().trim();
+      const year = film.year || film.Year || '';
+      const key = `${title}_${year}`;
+      if (!seen.has(key) && !seen.has(title)) {
+        seen.add(key);
+        seen.add(title);
+        unique.push(film);
+      }
+    }
+    return unique.slice(0, 8);
   }, [diary]);
 
-  // 5-Star Masterpieces - Preview of top 8 strictly 5.0 rating films
+  // 5-Star Masterpieces - Preview of top 8 unique strictly 5.0 rating films
   const topRatedFilms = useMemo(() => {
-    return diary.filter(f => Number(f.rating || f.Rating) === 5).slice(0, 8);
+    const perfectFilms = diary.filter(f => Number(f.rating || f.Rating) === 5);
+    const seen = new Set();
+    const unique = [];
+    for (const film of perfectFilms) {
+      const title = (film.name || film.title || film.Name || '').toLowerCase().trim();
+      const year = film.year || film.Year || '';
+      const key = `${title}_${year}`;
+      if (!seen.has(key) && !seen.has(title)) {
+        seen.add(key);
+        seen.add(title);
+        unique.push(film);
+      }
+    }
+    return unique.slice(0, 8);
   }, [diary]);
 
-  // Watchlist Queue - Preview of top 8 unwatched gems
+  // Watchlist Queue - Preview of top 8 unique unwatched gems
   const watchlistQueue = useMemo(() => {
-    return (watchlist || []).slice(0, 8);
+    const seen = new Set();
+    const unique = [];
+    for (const film of (watchlist || [])) {
+      const title = (film.name || film.title || film.Name || '').toLowerCase().trim();
+      const year = film.year || film.Year || '';
+      const key = `${title}_${year}`;
+      if (!seen.has(key) && !seen.has(title)) {
+        seen.add(key);
+        seen.add(title);
+        unique.push(film);
+      }
+    }
+    return unique.slice(0, 8);
   }, [watchlist]);
 
   // 2. Taste Intelligence Micro-Ribbon Calculations
   const monthlyMetrics = useMemo(() => {
     if (diary.length === 0) return null;
 
-    // Find the active month from the latest diary entry or today
-    let latestDate = diary[0]?.date || diary[0]?.Watched_Date || new Date().toISOString();
-    const activeMonthYear = latestDate.slice(0, 7); // e.g. "2026-08"
-    const [year, month] = activeMonthYear.split('-');
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const activeMonthName = monthNames[parseInt(month, 10) - 1] || 'This Month';
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthName = monthNames[now.getMonth()] || 'This Month';
+
+    // Sort diary descending to find latest logged month
+    const sorted = [...diary].sort((a, b) => {
+      const da = new Date(a.date || a.Watched_Date || a.Date || 0);
+      const db = new Date(b.date || b.Watched_Date || b.Date || 0);
+      return db - da;
+    });
 
     const thisMonthFilms = diary.filter(f => {
       const d = f.date || f.Watched_Date || f.Date || '';
-      return d.startsWith(activeMonthYear);
+      return d.startsWith(currentYearMonth);
     });
 
-    const velocity = thisMonthFilms.length;
-    const rated = thisMonthFilms.filter(f => f.rating || f.Rating);
-    const avgRating = rated.length > 0
-      ? (rated.reduce((acc, f) => acc + Number(f.rating || f.Rating), 0) / rated.length).toFixed(1)
+    // If current calendar month has films, display current month pace; else display latest active month
+    let paceMonthLabel = currentMonthName;
+    let velocity = thisMonthFilms.length;
+
+    if (velocity === 0 && sorted.length > 0 && sorted[0]?.date) {
+      const latestMonthStr = (sorted[0].date || '').slice(0, 7);
+      if (latestMonthStr && latestMonthStr.length >= 7) {
+        const [lYear, lMonth] = latestMonthStr.split('-');
+        const lMonthIdx = parseInt(lMonth, 10) - 1;
+        const lMonthName = monthNames[lMonthIdx];
+        if (lMonthName) {
+          paceMonthLabel = lMonthName;
+          velocity = diary.filter(f => (f.date || f.Watched_Date || f.Date || '').startsWith(latestMonthStr)).length;
+        }
+      }
+    }
+
+    // Calculate overall library-wide average rating
+    const ratedFilms = diary.filter(f => f.rating !== undefined && f.rating !== null && f.rating !== '');
+    const avgRating = ratedFilms.length > 0
+      ? (ratedFilms.reduce((acc, f) => acc + Number(f.rating || f.Rating), 0) / ratedFilms.length).toFixed(1)
       : null;
 
-    // Top genre this month
+    // Calculate library-wide top genres
     const genreCounts = {};
-    thisMonthFilms.forEach(f => {
+    diary.forEach(f => {
       const g = f.genre || f.Genre;
       if (g) {
-        g.split(',').map(s => s.trim()).filter(s => s && s !== 'Cinema').forEach(genre => {
+        g.split(',').map(s => s.trim()).filter(s => s && s !== 'Cinema' && s !== 'Drama').forEach(genre => {
           genreCounts[genre] = (genreCounts[genre] || 0) + 1;
         });
       }
     });
     const sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]);
-    const topGenre = sortedGenres.slice(0, 2).join(' & ') || 'Drama & Cinema';
+    const topGenre = sortedGenres.slice(0, 2).join(' & ') || 'Cinema & Drama';
 
     return {
-      monthName: activeMonthName,
+      monthName: paceMonthLabel,
       velocity,
       avgRating,
       topGenre
@@ -204,11 +250,14 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
     <div>
       {/* 1. Daily Watchlist Spotlight Hero Section */}
       {dailyFilm ? (() => {
-        const rawGenre = dailyFilm.genre || dailyFilm.Genre || '';
-        const genreList = rawGenre
-          ? rawGenre.split(',').map(g => g.trim()).filter(g => g && g !== 'Cinema')
-          : [];
-        const runtime = dailyFilm.runtime || dailyFilm.Runtime;
+        const filmTitle = spotlightMeta?.title || dailyFilm.name || dailyFilm.Name || dailyFilm.title;
+        const filmYear = spotlightMeta?.year || dailyFilm.year || dailyFilm.Year;
+        const filmPoster = spotlightMeta?.poster || dailyFilm.poster || dailyFilm.Poster;
+        const filmDirector = spotlightMeta?.director || dailyFilm.director || dailyFilm.Director;
+        const rawGenre = spotlightMeta?.genre || dailyFilm.genre || dailyFilm.Genre || '';
+        const genreList = spotlightMeta?.genres || (rawGenre ? rawGenre.split(',').map(g => g.trim()).filter(g => g && g !== 'Cinema') : []);
+        const runtime = spotlightMeta?.runtime || dailyFilm.runtime || dailyFilm.Runtime;
+        const overview = spotlightMeta?.overview || dailyFilm.overview || dailyFilm.Overview;
 
         return (
           <div className="spotlight-card">
@@ -228,12 +277,12 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
             {/* Large Movie Poster with Depth & Hover Elevation */}
             <div
               className="spotlight-poster-wrap"
-              onClick={() => onSelectMovie(dailyFilm)}
+              onClick={() => onSelectMovie({ ...dailyFilm, ...spotlightMeta })}
             >
               <PosterImage
-                src={dailyFilm.poster || dailyFilm.Poster}
-                name={dailyFilm.name || dailyFilm.Name}
-                year={dailyFilm.year || dailyFilm.Year}
+                src={filmPoster}
+                name={filmTitle}
+                year={filmYear}
                 className="poster-img"
               />
             </div>
@@ -269,9 +318,9 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                     marginBottom: '6px',
                     cursor: 'pointer'
                   }}
-                  onClick={() => onSelectMovie(dailyFilm)}
+                  onClick={() => onSelectMovie({ ...dailyFilm, ...spotlightMeta })}
                 >
-                  {dailyFilm.name || dailyFilm.Name}
+                  {filmTitle}
                 </h2>
 
                 {/* Enriched Metadata Row */}
@@ -288,7 +337,7 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                   }}
                 >
                   <span style={{ fontWeight: '800', color: '#ffffff' }}>
-                    {dailyFilm.year || dailyFilm.Year || 'N/A'}
+                    {filmYear || 'N/A'}
                   </span>
 
                   {runtime && (
@@ -298,10 +347,10 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                     </>
                   )}
 
-                  {dailyFilm.director && dailyFilm.director !== 'Unknown Director' && dailyFilm.director !== 'Auteur' && (
+                  {filmDirector && filmDirector !== 'Unknown Director' && filmDirector !== 'Auteur' && (
                     <>
                       <span>•</span>
-                      <span>Dir. {dailyFilm.director.split(',')[0]}</span>
+                      <span>Dir. {filmDirector.split(',')[0]}</span>
                     </>
                   )}
 
@@ -328,7 +377,7 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                 </div>
 
                 {/* High Contrast Synopsis */}
-                {dailyFilm.overview && (
+                {overview && (
                   <p
                     className="spotlight-synopsis"
                     style={{
@@ -343,7 +392,7 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {dailyFilm.overview}
+                    {overview}
                   </p>
                 )}
               </div>
@@ -388,27 +437,48 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
       {/* 2. Taste Intelligence Micro-Ribbon */}
       {monthlyMetrics && (
         <div className="taste-ribbon">
-          <div className="taste-ribbon-tile">
+          <div
+            className="taste-ribbon-tile"
+            onClick={() => onNavigate('diary')}
+            role="button"
+            tabIndex={0}
+            title={`View all ${monthlyMetrics.velocity} films logged in ${monthlyMetrics.monthName} in your Diary`}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('diary'); } }}
+          >
             <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-ruby-subtle)', color: 'var(--accent-ruby)' }}>
               <TrendingUp size={20} />
             </div>
             <div className="taste-ribbon-info">
-              <div className="taste-ribbon-label">Monthly Pace</div>
-              <div className="taste-ribbon-val">{monthlyMetrics.velocity} films in {monthlyMetrics.monthName}</div>
+              <div className="taste-ribbon-label">Monthly Pace ({monthlyMetrics.monthName})</div>
+              <div className="taste-ribbon-val">{monthlyMetrics.velocity} {monthlyMetrics.velocity === 1 ? 'Film' : 'Films'}</div>
             </div>
           </div>
 
-          <div className="taste-ribbon-tile">
+          <div
+            className="taste-ribbon-tile"
+            onClick={() => onNavigate('analytics')}
+            role="button"
+            tabIndex={0}
+            title="Inspect rating curves & breakdown in Analytics"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('analytics'); } }}
+          >
             <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)' }}>
               <Star size={20} fill="currentColor" />
             </div>
             <div className="taste-ribbon-info">
-              <div className="taste-ribbon-label">{monthlyMetrics.monthName} Average</div>
-              <div className="taste-ribbon-val">{monthlyMetrics.avgRating ? `★ ${monthlyMetrics.avgRating} Rating` : 'Unrated'}</div>
+              <div className="taste-ribbon-label">Average Score</div>
+              <div className="taste-ribbon-val">{monthlyMetrics.avgRating ? `★ ${monthlyMetrics.avgRating}` : 'Unrated'}</div>
             </div>
           </div>
 
-          <div className="taste-ribbon-tile">
+          <div
+            className="taste-ribbon-tile"
+            onClick={() => onNavigate('mixes')}
+            role="button"
+            tabIndex={0}
+            title={`Explore tailored Cinema Mixes for ${monthlyMetrics.topGenre}`}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('mixes'); } }}
+          >
             <div className="taste-ribbon-icon-wrap" style={{ background: 'var(--accent-cyan-subtle)', color: 'var(--accent-cyan)' }}>
               <Film size={20} />
             </div>
@@ -447,55 +517,7 @@ export default function HomeView({ diary = [], watchlist = [], onSelectMovie, on
         </ScrollableRail>
       </div>
 
-      {/* 4. Cinema Mixes Rail with Upgraded Gradient Header Cards */}
-      <div className="section-container">
-        <div className="section-header">
-          <div>
-            <h2 className="section-title">Your Cinema Mixes</h2>
-            <p className="section-subtitle">Unwatched discoveries tailored to your favorite genres.</p>
-          </div>
-          <button
-            className="btn-secondary"
-            onClick={() => onNavigate('mixes')}
-          >
-            <span>All Mixes</span>
-            <ChevronRight size={14} />
-          </button>
-        </div>
-
-        <div className="mix-grid">
-          {mixes.map((mix) => (
-            <div
-              key={mix.id}
-              className="mix-deck-item"
-              onClick={() => onSelectMix(mix)}
-            >
-              {/* Layered Stepped Poster Deck (fans open on hover) */}
-              <div className="mix-deck-stage">
-                {mix.films.slice(0, 4).map((film, fIdx) => (
-                  <div
-                    key={film.id || fIdx}
-                    className={`deck-poster deck-poster-${fIdx}`}
-                  >
-                    <PosterImage
-                      src={film.poster}
-                      name={film.name}
-                      year={film.year}
-                      className="mix-thumb"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Title & Clean Film Count */}
-              <div className="mix-deck-title">{mix.title}</div>
-              <div className="mix-deck-vibe">{mix.films.length} unwatched films</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Watchlist Queue with Scroll Arrows */}
+      {/* 4. Watchlist Queue with Scroll Arrows */}
       {watchlistQueue.length > 0 && (
         <div className="section-container">
           <div className="section-header">

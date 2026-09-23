@@ -42,7 +42,7 @@ export default function PosterImage({ src, name, year, className = "poster-img",
           justifyContent: 'center',
           background: 'linear-gradient(145deg, #18202e 0%, #0d121a 100%)',
           border: '1px solid var(--border-subtle)',
-          borderRadius: '4px',
+          borderRadius: '10px',
           padding: '12px',
           textAlign: 'center',
           color: 'var(--text-muted)',
@@ -100,7 +100,7 @@ export default function PosterImage({ src, name, year, className = "poster-img",
           height: '100%',
           objectFit: 'cover',
           opacity: isLoaded ? 1 : 0,
-          transition: 'opacity 0.22s ease',
+          transition: 'transform 300ms ease-out, opacity 0.22s ease',
           ...style
         }}
       />

@@ -1,5 +1,6 @@
 // src/views/AnalyticsView.jsx
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   BarChart2, 
   Calendar, 
@@ -412,13 +413,25 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
           </div>
 
           {/* Watch Time KPI */}
-          <div className="kpi-tile">
+          <div
+            className="kpi-tile"
+            onClick={() => openDrillDown('Watch Time Breakdown', 'All logged feature films sorted by runtime', [...filteredDiary].sort((a, b) => (parseInt(b.runtime || b.Runtime || 0, 10) - parseInt(a.runtime || a.Runtime || 0, 10))))}
+            style={{ cursor: 'pointer', transition: 'border-color var(--transition-fast), transform var(--transition-fast)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
             <div className="kpi-label">Watch Time</div>
             <div className="kpi-value">{totalHours} hrs</div>
           </div>
 
           {/* Mean Rating KPI */}
-          <div className="kpi-tile">
+          <div
+            className="kpi-tile"
+            onClick={() => openDrillDown('Rated Screenings', `All rated films sorted by score`, [...filteredDiary.filter(f => f.rating || f.Rating)].sort((a, b) => Number(b.rating || b.Rating) - Number(a.rating || a.Rating)))}
+            style={{ cursor: 'pointer', transition: 'border-color var(--transition-fast), transform var(--transition-fast)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-gold)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
             <div className="kpi-label">Mean Rating</div>
             <div className="kpi-value" style={{ color: 'var(--accent-gold)' }}>★ {meanRating}</div>
           </div>
@@ -885,7 +898,7 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
       {/* =========================================================
           8. UNIVERSAL CLICK-TO-DRILL-DOWN MODAL
           ========================================================= */}
-      {drillDown.isOpen && (
+      {drillDown.isOpen && createPortal(
         <div className="modal-backdrop" onClick={closeDrillDown}>
           <div
             className="modal-content"
@@ -952,7 +965,8 @@ export default function AnalyticsView({ diary = [], onSelectMovie }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

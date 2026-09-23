@@ -14,6 +14,10 @@ export async function generateStoryCardBlob({
   canvas.height = 1920;
   const ctx = canvas.getContext('2d');
 
+  const safeMonthYear = String(monthYear || 'Month').toUpperCase();
+  const safeDirector = String(topDirector || 'Various Auteurs');
+  const safePersona = String(persona || 'Cinephile');
+
   // Matte Black Background
   ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0, 0, 1080, 1920);
@@ -25,7 +29,7 @@ export async function generateStoryCardBlob({
   // Top Header Branding
   ctx.fillStyle = '#e05260';
   ctx.font = 'bold 32px "Plus Jakarta Sans", -apple-system, sans-serif';
-  ctx.fillText(`CINEMETRICS // ${monthYear.toUpperCase()} REWIND`, 80, 150);
+  ctx.fillText(`CINEMETRICS // ${safeMonthYear} REWIND`, 80, 150);
 
   ctx.fillStyle = '#f2f2f2';
   ctx.font = 'bold 46px "Plus Jakarta Sans", -apple-system, sans-serif';
@@ -39,7 +43,7 @@ export async function generateStoryCardBlob({
 
   ctx.fillStyle = '#f2f2f2';
   ctx.font = 'bold 44px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(persona, 120, 460);
+  ctx.fillText(safePersona, 120, 460);
 
   // Watch Time Box
   drawRoundedRect(ctx, 80, 600, 440, 280, 14, '#181818', '#2a2a2a', 1);
@@ -63,7 +67,7 @@ export async function generateStoryCardBlob({
 
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 42px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(topDirector.slice(0, 16), 600, 750);
+  ctx.fillText(safeDirector.slice(0, 16), 600, 750);
 
   ctx.fillStyle = '#777777';
   ctx.font = '24px "Plus Jakarta Sans", sans-serif';
@@ -127,8 +131,6 @@ function roundRectPath(ctx, x, y, width, height, radius) {
   ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
   ctx.lineTo(x + width, y + height - radius);
   ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
   ctx.lineTo(x + radius, y + height);
   ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
   ctx.lineTo(x, y + radius);

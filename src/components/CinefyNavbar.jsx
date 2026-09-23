@@ -1,5 +1,6 @@
 // src/components/CinefyNavbar.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Search, Plus, Star, Sparkles, ChevronDown, Disc3, Compass, BarChart2, Calendar, Film, Settings } from 'lucide-react';
 import { searchTMDbMovies } from '../services/tmdb';
 import PosterImage from './PosterImage';
@@ -89,7 +90,7 @@ export default function CinefyNavbar({
   return (
     <header className="cf-header">
       <div className="cf-nav-container">
-        {/* Left Cluster: Brand Logo + Profile + Pinterest Navigation pinned together on the LEFT */}
+        {/* Left Cluster: Brand Logo + Profile */}
         <div className="cf-nav-left-cluster">
           {/* 1. Custom Cinefy Anamorphic Brand Logo */}
           <div className="cf-brand-group" onClick={() => setTab('home')}>
@@ -166,33 +167,38 @@ export default function CinefyNavbar({
               </div>
             )}
           </div>
-
-          <div className="cf-nav-divider-v" />
-
-          {/* 3. Big 24px Icon Navigation with Floating Tooltips */}
-          <nav className="cf-pin-icons-wrap">
-            {navLinks.map(link => {
-              const isActive = currentTab === link.id;
-              const Icon = link.icon;
-
-              return (
-                <button
-                  key={link.id}
-                  className={`cf-pin-btn ${isActive ? 'active' : ''}`}
-                  onClick={() => setTab(link.id)}
-                  aria-label={link.label}
-                >
-                  <Icon size={24} strokeWidth={isActive ? 2.4 : 1.8} className="cf-pin-icon" />
-
-                  {/* Floating Hover Tooltip */}
-                  <span className="cf-pin-tooltip">
-                    {link.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
         </div>
+
+        {/* Central Pill-Shaped Navigation Group (Spotify-Style Library Toggles) */}
+        <nav className="cf-nav-pill-group">
+          {navLinks.map(link => {
+            const isActive = currentTab === link.id;
+            const Icon = link.icon;
+
+            return (
+              <button
+                key={link.id}
+                className={`cf-nav-pill-item ${isActive ? 'active' : ''}`}
+                onClick={() => setTab(link.id)}
+                aria-label={link.label}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="cf-nav-active-pill"
+                    className="cf-nav-active-bg"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <Icon size={24} strokeWidth={isActive ? 2.4 : 1.8} className="cf-nav-pill-icon" />
+
+                {/* Floating Hover Tooltip */}
+                <span className="cf-pin-tooltip">
+                  {link.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right Cluster: Search & +LOG FILM */}
         <div className="cf-right-actions">

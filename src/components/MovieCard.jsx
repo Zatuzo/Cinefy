@@ -31,42 +31,29 @@ export default function MovieCard({ movie, onSelect, badge = null, className = '
 
         {/* Custom Frosted Badge (e.g. Watch Date or Rank) */}
         {badge && (
-          <div style={{
-            position: 'absolute',
-            top: '8px',
-            left: '8px',
-            background: 'rgba(9, 12, 18, 0.88)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '4px',
-            padding: '3px 8px',
-            fontSize: '11px',
-            fontWeight: '800',
-            color: '#ffffff',
-            letterSpacing: '0.02em',
-            zIndex: 2,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.7)'
-          }}>
+          <div className="card-badge">
             {badge}
           </div>
         )}
       </div>
 
-      <div className="card-title">
-        {filmName}
-      </div>
+      <div className="card-text-container">
+        <div className="card-title">
+          {filmName}
+        </div>
 
-      <div className="card-meta">
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: ratingVal ? '130px' : '100%' }}>
-          {filmYear}{directorName ? ` • ${directorName}` : ''}
-        </span>
+        <div className="card-meta">
+          <span className="card-meta-text">
+            {filmYear}{directorName ? ` • ${directorName}` : ''}
+          </span>
 
-        {ratingVal && (
-          <div className="star-rating" style={{ flexShrink: 0 }}>
-            <Star size={11} fill="currentColor" />
-            <span>{Number(ratingVal).toFixed(1)}</span>
-          </div>
-        )}
+          {ratingVal && (
+            <div className="star-rating">
+              <Star size={11} fill="currentColor" />
+              <span>{Number(ratingVal).toFixed(1)}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

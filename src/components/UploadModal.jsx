@@ -1,5 +1,6 @@
 // src/components/UploadModal.jsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Upload, CheckCircle2, FileSpreadsheet, Film, Bookmark, Info } from 'lucide-react';
 import { processLetterboxdFiles } from '../services/csvParser';
 
@@ -49,7 +50,7 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ width: '540px' }}>
         {/* Modal Header */}
@@ -77,16 +78,36 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded }) {
           </button>
         </div>
 
-        <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', lineHeight: 1.5 }}>
-          Drop your exported Letterboxd CSV files here to instantly load your diary, ratings, and watchlist.
+        <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '16px', lineHeight: 1.5 }}>
+          Drop your exported Letterboxd CSV files here. You can select multiple files at once — Cinefy will automatically merge your diary dates, written reviews, ratings, and watchlist.
         </p>
+
+        {/* Supported Files Tags */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          {['diary.csv', 'reviews.csv', 'watchlist.csv', 'ratings.csv'].map((fileName) => (
+            <span
+              key={fileName}
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#cbd5e1',
+                borderRadius: '4px',
+                padding: '3px 8px',
+                fontSize: '11.5px',
+                fontWeight: '700'
+              }}
+            >
+              {fileName}
+            </span>
+          ))}
+        </div>
 
         {/* Drag & Drop Area */}
         <div
           style={{
             border: `2px dashed ${dragActive ? 'var(--accent-ruby)' : 'var(--border-hover)'}`,
             borderRadius: 'var(--radius-md)',
-            padding: '36px 20px',
+            padding: '32px 20px',
             textAlign: 'center',
             background: dragActive ? 'rgba(251, 54, 64, 0.08)' : '#0e141e',
             transition: 'all var(--transition-fast)',
@@ -125,7 +146,7 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded }) {
             Click or drag & drop Letterboxd CSVs
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            Select <b>diary.csv</b>, <b>ratings.csv</b>, or <b>watchlist.csv</b>
+            Select <b>diary.csv</b>, <b>reviews.csv</b>, <b>watchlist.csv</b>, or all files at once
           </div>
         </div>
 
@@ -184,6 +205,7 @@ export default function UploadModal({ isOpen, onClose, onDataLoaded }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

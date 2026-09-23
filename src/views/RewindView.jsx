@@ -102,13 +102,27 @@ export default function RewindView({ diary = [], onSelectMovie }) {
   });
   const topGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]);
 
-  // All month films sorted by rating descending
+  // All month films sorted by rating descending (unique films)
   const sortedMonthFilms = useMemo(() => {
-    return [...monthFilms].sort((a, b) => {
+    const sorted = [...monthFilms].sort((a, b) => {
       const rA = a.rating ?? a.Rating ?? 0;
       const rB = b.rating ?? b.Rating ?? 0;
       return rB - rA;
     });
+
+    const seen = new Set();
+    const unique = [];
+    for (const film of sorted) {
+      const title = (film.name || film.title || film.Name || '').toLowerCase().trim();
+      const year = film.year || film.Year || '';
+      const key = `${title}_${year}`;
+      if (!seen.has(key) && !seen.has(title)) {
+        seen.add(key);
+        seen.add(title);
+        unique.push(film);
+      }
+    }
+    return unique;
   }, [monthFilms]);
 
   const leadPoster = sortedMonthFilms[0]?.poster || sortedMonthFilms[0]?.Poster || null;

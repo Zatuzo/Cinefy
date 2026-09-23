@@ -1,5 +1,5 @@
 // src/views/DiaryView.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import MovieCard from '../components/MovieCard';
 import PosterImage from '../components/PosterImage';
 import { 
@@ -14,15 +14,14 @@ import {
   Layers, 
   RotateCcw,
   Edit3,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  ChevronDown
+  Trash2,
+  ChevronDown,
+  ArrowUp
 } from 'lucide-react';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const ITEMS_PER_PAGE = 24;
+const INITIAL_MONTHS_COUNT = 4;
 
 function formatCardDate(dateStr) {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.length < 10) return null;
@@ -60,7 +59,7 @@ function formatMonthHeader(monthStr) {
   return `${MONTH_FULL[monthIdx] || month} ${year}`;
 }
 
-export default function DiaryView({ diary = [], onSelectMovie }) {
+export default function DiaryView({ diary = [], onSelectMovie, onDeleteMovie }) {
   // 1. View Mode Switcher: 'grid' (Default) | 'table'
   const [viewMode, setViewMode] = useState('grid');
 
@@ -71,7 +70,10 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
   const [selectedRating, setSelectedRating] = useState('ALL');
   const [sortBy, setSortBy] = useState('date-desc');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // 3. Progressive Month Scroll State
+  const [visibleMonthsCount, setVisibleMonthsCount] = useState(INITIAL_MONTHS_COUNT);
+  const sentinelRef = useRef(null);
 
   // Extract unique months from diary
   const availableMonths = useMemo(() => {
@@ -107,15 +109,15 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
     setSelectedGenre('ALL');
     setSelectedRating('ALL');
     setSortBy('date-desc');
-    setCurrentPage(1);
+    setVisibleMonthsCount(INITIAL_MONTHS_COUNT);
   };
 
-  // Reset page to 1 when filters change
+  // Reset visible months count when filters or sorting change
   useEffect(() => {
-    setCurrentPage(1);
+    setVisibleMonthsCount(INITIAL_MONTHS_COUNT);
   }, [searchQuery, selectedMonth, selectedGenre, selectedRating, sortBy]);
 
-  // 3. Filter and Sort Diary Films
+  // 4. Filter and Sort Diary Films
   const filteredAndSortedFilms = useMemo(() => {
     let list = [...diary];
 
@@ -184,35 +186,66 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
     return list;
   }, [diary, searchQuery, selectedMonth, selectedGenre, selectedRating, sortBy]);
 
-  // Pagination slicing
-  const totalItems = filteredAndSortedFilms.length;
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-  const paginatedFilms = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAndSortedFilms.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredAndSortedFilms, currentPage]);
+  // 5. Group ALL Filtered Films into Full Month Sections
+  const allMonthSections = useMemo(() => {
+    if (!sortBy.startsWith('date')) {
+      const sortTitle = sortBy === 'rating-desc' ? 'Highest Rated Screenings'
+        : sortBy === 'year-desc' ? 'Screenings by Release Year'
+        : 'Screenings by Title';
+      return [{
+        monthKey: 'sorted_all',
+        monthTitle: sortTitle,
+        films: filteredAndSortedFilms
+      }];
+    }
 
-  // 4. Group by Month for the Current Page
-  const monthSections = useMemo(() => {
     const groups = {};
-    paginatedFilms.forEach(film => {
+    const order = [];
+
+    filteredAndSortedFilms.forEach(film => {
       const d = film.date || film.Watched_Date || film.Date;
       const key = d && typeof d === 'string' && d.length >= 7 ? d.slice(0, 7) : 'Undated';
-      if (!groups[key]) groups[key] = [];
+      if (!groups[key]) {
+        groups[key] = [];
+        order.push(key);
+      }
       groups[key].push(film);
     });
 
-    return Object.keys(groups)
-      .sort()
-      .reverse()
-      .map(key => ({
-        monthKey: key,
-        monthTitle: key === 'Undated' ? 'Undated Screenings' : formatMonthHeader(key),
-        films: groups[key]
-      }));
-  }, [paginatedFilms]);
+    return order.map(key => ({
+      monthKey: key,
+      monthTitle: key === 'Undated' ? 'Undated Screenings' : formatMonthHeader(key),
+      films: groups[key]
+    }));
+  }, [filteredAndSortedFilms, sortBy]);
 
-  // 5. Quick-Stats Calculations for currently filtered subset
+  const isDateSort = sortBy.startsWith('date');
+  const visibleMonthSections = useMemo(() => {
+    if (!isDateSort) return allMonthSections;
+    return allMonthSections.slice(0, visibleMonthsCount);
+  }, [allMonthSections, visibleMonthsCount, isDateSort]);
+
+  const hasMoreMonths = isDateSort && visibleMonthsCount < allMonthSections.length;
+
+  // 6. Progressive Intersection Observer (Infinite Continuous Scroll)
+  useEffect(() => {
+    if (!hasMoreMonths) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleMonthsCount(prev => Math.min(prev + 3, allMonthSections.length));
+      }
+    }, {
+      rootMargin: '600px 0px' // Smooth pre-loading before hitting the bottom
+    });
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMoreMonths, allMonthSections.length]);
+
+  // 7. Quick-Stats Calculations for currently filtered subset
   const filteredMetrics = useMemo(() => {
     const count = filteredAndSortedFilms.length;
     const totalMins = filteredAndSortedFilms.reduce((acc, f) => acc + (f.runtime || f.Runtime || 110), 0);
@@ -418,9 +451,9 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               onChange={(e) => setSelectedRating(e.target.value)}
             >
               <option value="ALL">All Ratings</option>
-              <option value="5.0">5★ Masterpieces</option>
-              <option value="4.0+">4★ and Above</option>
-              <option value="3.0+">3★ and Above</option>
+              <option value="5.0">★★★★★ (5.0 Only)</option>
+              <option value="4.0+">★★★★☆ (4.0 & Above)</option>
+              <option value="3.0+">★★★☆☆ (3.0 & Above)</option>
             </select>
 
             {/* Sort Dropdown */}
@@ -429,23 +462,23 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
-              <option value="date-desc">Date (Newest first)</option>
-              <option value="date-asc">Date (Oldest first)</option>
-              <option value="rating-desc">Rating (Highest first)</option>
-              <option value="year-desc">Release Year (Newest)</option>
-              <option value="title-asc">Title (A → Z)</option>
+              <option value="date-desc">Viewing Date (Newest First)</option>
+              <option value="date-asc">Viewing Date (Oldest First)</option>
+              <option value="rating-desc">Rating (Highest First)</option>
+              <option value="year-desc">Release Year (Newest First)</option>
+              <option value="title-asc">Film Title (A to Z)</option>
             </select>
           </div>
         )}
       </div>
 
-      {/* 4. Main Body: Grid View vs. Table View */}
+      {/* 4. Film Presentation Area (Grid or Table) */}
       {filteredAndSortedFilms.length === 0 ? (
-        <div className="empty-state-card" style={{ padding: '60px 20px' }}>
-          <Film size={36} color="var(--text-muted)" style={{ marginBottom: '8px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff' }}>No diary entries match your filters</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '420px' }}>
-            Try clearing your search query or adjusting your genre and month filters.
+        <div className="empty-state-card" style={{ padding: '48px 20px', marginBottom: '40px' }}>
+          <Film size={36} color="var(--text-muted)" style={{ marginBottom: '10px' }} />
+          <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>No diary entries match your filters</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
+            Try clearing your search query or broadening your genre/rating selections.
           </p>
           <button className="btn-secondary" onClick={handleResetFilters} style={{ marginTop: '10px' }}>
             <RotateCcw size={14} />
@@ -454,10 +487,10 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
         </div>
       ) : viewMode === 'grid' ? (
         /* =========================================================
-           VIEW MODE A: CONTINUOUS POSTER GRID
+           VIEW MODE A: CONTINUOUS MONTH-BY-MONTH POSTER GRID
            ========================================================= */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {monthSections.map(section => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
+          {visibleMonthSections.map(section => (
             <div key={section.monthKey} className="diary-month-group">
               {/* Month Section Header */}
               <div className="section-header" style={{ marginBottom: '16px' }}>
@@ -471,7 +504,7 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
                 </div>
               </div>
 
-              {/* Full-Width Poster Grid */}
+              {/* Full-Width Complete Month Poster Grid */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -511,157 +544,201 @@ export default function DiaryView({ diary = [], onSelectMovie }) {
               </tr>
             </thead>
             <tbody>
-              {paginatedFilms.map((film, idx) => {
-                const dateInfo = formatTableDate(film.date || film.Watched_Date || film.Date, film.dayOfWeek || film.Day_of_Week);
-                const director = film.director && film.director !== 'Unknown Director' && film.director !== 'Auteur'
-                  ? film.director.split(',')[0].trim()
-                  : null;
-                const genre = film.genre || film.Genre;
-                const ratingNum = film.rating || film.Rating;
-
-                return (
-                  <tr
-                    key={film.id || `${film.name || film.Name || film.title}-${idx}`}
-                    className="diary-table-row"
-                    onClick={() => onSelectMovie && onSelectMovie(film)}
-                  >
-                    {/* Date */}
-                    <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
-                      <div style={{ fontWeight: '700', color: '#ffffff' }}>{dateInfo.formatted}</div>
-                      {dateInfo.dayName && (
-                        <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>
-                          {dateInfo.dayName}
+              {visibleMonthSections.map(section => (
+                <React.Fragment key={section.monthKey}>
+                  {/* Month Subheader in Table */}
+                  {isDateSort && allMonthSections.length > 1 && (
+                    <tr className="diary-table-month-header">
+                      <td colSpan={7}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
+                          <Calendar size={14} style={{ color: 'var(--accent-ruby)' }} />
+                          <span style={{ fontWeight: '800', fontSize: '13px', color: '#ffffff' }}>
+                            {section.monthTitle}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700' }}>
+                            ({section.films.length} {section.films.length === 1 ? 'film' : 'films'})
+                          </span>
                         </div>
-                      )}
-                    </td>
+                      </td>
+                    </tr>
+                  )}
 
-                    {/* Poster Thumbnail */}
-                    <td>
-                      <div style={{ width: '36px', height: '54px', borderRadius: '4px', overflow: 'hidden', background: '#0a0d14', border: '1px solid var(--border-subtle)' }}>
-                        <PosterImage
-                          src={film.poster || film.Poster || film.posterUrl}
-                          name={film.name || film.Name || film.title}
-                          year={film.year || film.Year}
-                        />
-                      </div>
-                    </td>
+                  {section.films.map((film, idx) => {
+                    const dateInfo = formatTableDate(film.date || film.Watched_Date || film.Date, film.dayOfWeek || film.Day_of_Week);
+                    const director = film.director && film.director !== 'Unknown Director' && film.director !== 'Auteur'
+                      ? film.director.split(',')[0].trim()
+                      : null;
+                    const genre = film.genre || film.Genre;
+                    const ratingNum = film.rating || film.Rating;
 
-                    {/* Film Title & Year */}
-                    <td>
-                      <div style={{ fontWeight: '800', fontSize: '14px', color: '#ffffff' }}>
-                        {film.name || film.Name || film.title}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {film.year || 'N/A'}
-                      </div>
-                    </td>
-
-                    {/* Director & Genre */}
-                    <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {director && <div style={{ fontWeight: '600' }}>Dir. {director}</div>}
-                      {genre && <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>{genre.split(',').slice(0, 2).join(', ')}</div>}
-                    </td>
-
-                    {/* Rating */}
-                    <td>
-                      {ratingNum ? (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--accent-gold)', fontWeight: '800', fontSize: '13px' }}>
-                          <Star size={12} fill="currentColor" />
-                          <span>{Number(ratingNum).toFixed(1)}</span>
-                        </div>
-                      ) : (
-                        <span style={{ color: 'var(--text-dim)', fontSize: '12px' }}>—</span>
-                      )}
-                    </td>
-
-                    {/* Review Snippet */}
-                    <td style={{ fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '320px' }}>
-                      {film.review ? (
-                        <span style={{ fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
-                          "{film.review}"
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-dim)' }}>—</span>
-                      )}
-                    </td>
-
-                    {/* Action Button */}
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn-ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onSelectMovie) onSelectMovie(film);
-                        }}
-                        style={{ padding: '6px' }}
-                        title="Edit / View Screening Details"
+                    return (
+                      <tr
+                        key={film.id || `${film.name || film.Name || film.title}-${idx}`}
+                        className="diary-table-row"
+                        onClick={() => onSelectMovie && onSelectMovie(film)}
                       >
-                        <Edit3 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                        {/* Date */}
+                        <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+                          <div style={{ fontWeight: '700', color: '#ffffff' }}>{dateInfo.formatted}</div>
+                          {dateInfo.dayName && (
+                            <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>
+                              {dateInfo.dayName}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Poster Thumbnail */}
+                        <td>
+                          <div style={{ width: '36px', height: '54px', borderRadius: '4px', overflow: 'hidden', background: '#0a0d14', border: '1px solid var(--border-subtle)' }}>
+                            <PosterImage
+                              src={film.poster || film.Poster || film.posterUrl}
+                              name={film.name || film.Name || film.title}
+                              year={film.year || film.Year}
+                            />
+                          </div>
+                        </td>
+
+                        {/* Film Title & Year */}
+                        <td>
+                          <div style={{ fontWeight: '800', fontSize: '14px', color: '#ffffff' }}>
+                            {film.name || film.Name || film.title}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            {film.year || 'N/A'}
+                          </div>
+                        </td>
+
+                        {/* Director & Genre */}
+                        <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          {director && <div style={{ fontWeight: '600' }}>Dir. {director}</div>}
+                          {genre && <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>{genre.split(',').slice(0, 2).join(', ')}</div>}
+                        </td>
+
+                        {/* Rating */}
+                        <td>
+                          {ratingNum ? (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--accent-gold)', fontWeight: '800', fontSize: '13px' }}>
+                              <Star size={12} fill="currentColor" />
+                              <span>{Number(ratingNum).toFixed(1)}</span>
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--text-dim)', fontSize: '12px' }}>—</span>
+                          )}
+                        </td>
+
+                        {/* Review Snippet */}
+                        <td style={{ fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '320px' }}>
+                          {film.review ? (
+                            <span style={{ fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
+                              "{film.review}"
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--text-dim)' }}>—</span>
+                          )}
+                        </td>
+
+                        {/* Action Buttons */}
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <button
+                              className="btn-ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectMovie) onSelectMovie(film);
+                              }}
+                              style={{ padding: '6px' }}
+                              title="Edit / View Screening Details"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            {onDeleteMovie && (
+                              <button
+                                className="btn-ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Delete "${film.name || film.title || 'this film'}" from your diary?`)) {
+                                    onDeleteMovie(film);
+                                  }
+                                }}
+                                style={{ padding: '6px', color: 'var(--text-dim)' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.color = '#ff5e66'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-dim)'; }}
+                                title="Delete Log from Diary"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* 5. Pagination Bar (No Infinite Scroll Machine) */}
-      {totalItems > ITEMS_PER_PAGE && (
+      {/* 5. Continuous Scroll Sentinel & Older Months Loader */}
+      {hasMoreMonths && (
+        <div
+          ref={sentinelRef}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '36px 0 16px 0',
+            gap: '12px'
+          }}
+        >
+          <button
+            className="btn-secondary"
+            onClick={() => setVisibleMonthsCount(prev => Math.min(prev + 3, allMonthSections.length))}
+            style={{
+              height: '42px',
+              padding: '0 20px',
+              fontSize: '13px',
+              fontWeight: '700',
+              gap: '8px'
+            }}
+          >
+            <ChevronDown size={16} />
+            <span>Load Older Months ({allMonthSections.length - visibleMonthsCount} remaining)</span>
+          </button>
+        </div>
+      )}
+
+      {/* 6. Dignified End-of-Diary Marker */}
+      {!hasMoreMonths && filteredAndSortedFilms.length > 0 && (
         <div style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          marginTop: '36px',
-          paddingTop: '20px',
+          justifyContent: 'center',
+          padding: '48px 20px 24px 20px',
           borderTop: '1px solid var(--border-subtle)',
-          flexWrap: 'wrap',
-          gap: '14px'
+          marginTop: '40px',
+          gap: '8px',
+          color: 'var(--text-muted)',
+          fontSize: '13px'
         }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
-            Showing <b style={{ color: '#ffffff' }}>{(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}</b> of <b style={{ color: '#ffffff' }}>{totalItems}</b> films
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', color: 'var(--text-primary)' }}>
+            <Calendar size={16} style={{ color: 'var(--accent-ruby)' }} />
+            <span>Beginning of Viewing Diary</span>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setCurrentPage(prev => Math.max(prev - 1, 1));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={currentPage <= 1}
-              style={{ height: '40px', padding: '0 14px' }}
-            >
-              <ChevronLeft size={16} />
-              <span>Previous</span>
-            </button>
-
-            <span style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '8px 14px',
-              fontSize: '13px',
-              fontWeight: '800',
-              color: '#ffffff'
-            }}>
-              Page {currentPage} of {totalPages}
-            </span>
-
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setCurrentPage(prev => Math.min(prev + 1, totalPages));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={currentPage >= totalPages}
-              style={{ height: '40px', padding: '0 14px' }}
-            >
-              <span>Next</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
+          <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+            {filteredAndSortedFilms.length} total screenings displayed across {allMonthSections.length} {allMonthSections.length === 1 ? 'month' : 'months'}
+          </span>
+          <button
+            className="btn-ghost"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)', gap: '4px' }}
+          >
+            <ArrowUp size={13} />
+            <span>Back to Top</span>
+          </button>
         </div>
       )}
     </div>
